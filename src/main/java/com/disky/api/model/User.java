@@ -1,27 +1,27 @@
 package com.disky.api.model;
 
-import lombok.Getter;
+import lombok.Data;
 import lombok.NonNull;
-import lombok.Setter;
 
+@Data
 public class User {
-     @Getter @Setter long userId;
-     @Getter @Setter String username;
-     @Getter @Setter String firstName;
-     @Getter @Setter String lastName;
-     @Getter @Setter String phoneNumber;
-     @Getter @Setter String password;
+    private long userId;
+    private String userName;
+    private String firstName;
+    private String lastName;
+    private String phoneNumber;
+    private String password;
 
-     public User(@NonNull Long userId) {
+    public User(long userId) {
         this.userId = userId;
-     }
+    }
 
-     public User(long userId, String username, String firstName, String lastName, String phoneNumber, String password) {
+    public User(long userId, String userName, String firstName, String lastName, String phoneNumber, String password) {
         this.userId = userId;
-        this.username = username;
+        this.userName = userName;
         this.firstName = firstName;
         this.lastName = lastName;
         this.phoneNumber = phoneNumber;
         this.password = password;
-     }
+    }
 }
