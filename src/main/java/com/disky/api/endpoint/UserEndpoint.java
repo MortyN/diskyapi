@@ -1,14 +1,11 @@
 package com.disky.api.endpoint;
 
 import com.disky.api.Exceptions.GetUserException;
-import com.disky.api.Exceptions.UserLinkException;
 import com.disky.api.controller.UserController;
 import com.disky.api.filter.UserFilter;
 import com.disky.api.model.User;
-import com.google.gson.Gson;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.SQLException;
 import java.util.List;
 
 @RequestMapping("/api/v1/user")
@@ -28,7 +25,7 @@ public class UserEndpoint {
 
     @PostMapping("/get")
     @ResponseBody
-    public static List<User> getUsers(@RequestParam(required = false) UserFilter userFilter) throws GetUserException {
+    public static List<User> getUsers(@RequestBody(required = false) UserFilter userFilter) throws GetUserException {
         return UserController.get(userFilter);
     }
 

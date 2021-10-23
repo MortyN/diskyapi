@@ -9,6 +9,8 @@ public class ArenaRoundHole {
     private String holeName;
     private Integer parValue;
     private Boolean active;
+    private String latitude;
+    private String longitude;
 
     public ArenaRoundHole(Long arenaRoundHoleId) {
         this.arenaRoundHoleId = arenaRoundHoleId;
