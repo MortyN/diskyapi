@@ -184,7 +184,7 @@ public class UserController {
                    user.setUserLinks(UserLinkController.getUserLinks(userLinkFilter));
                }
            }
-           log.info("Successfully retireved: " + userResult.size() + " users.");
+           log.info("Successfully retrieved: " + userResult.size() + " users.");
            return userResult;
        } catch (SQLException | UserLinkException e) {
            throw new GetUserException("Unable to get user");

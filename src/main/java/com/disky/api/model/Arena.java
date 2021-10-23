@@ -30,4 +30,8 @@ public class Arena {
         this.updateTs = updateTs;
         this.active = active;
     }
+
+    public static String getColumns(){
+        return "arena.ARENA_ID, arena.NAME, arena.ESTABLISHED, arena.CREATED_BY_USER_ID, arena.CREATED_TS, arena.ACTIVE";
+    }
 }
