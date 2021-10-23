@@ -3,24 +3,25 @@ package com.disky.api.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.Date;
+import java.sql.Date;
+import java.sql.Timestamp;
 
 @Data
 public class Arena {
     private Long arenaId;
     private String arenaName;
     private String description;
-    private Integer established;
+    private Date established;
     private User createdBy;
-    private Date createdTs;
-    private Date updateTs;
+    private Timestamp createdTs;
+    private Timestamp updateTs;
     private boolean active;
 
     public Arena(Long arenaId) {
         this.arenaId = arenaId;
     }
 
-    public Arena(Long arenaId, String arenaName, String description, Integer established, User createdBy, Date createdTs, Date updateTs, boolean active) {
+    public Arena(Long arenaId, String arenaName, String description, Date established, User createdBy, Timestamp createdTs, Timestamp updateTs, boolean active) {
         this.arenaId = arenaId;
         this.arenaName = arenaName;
         this.description = description;
@@ -32,6 +33,6 @@ public class Arena {
     }
 
     public static String getColumns(){
-        return "arena.ARENA_ID, arena.NAME, arena.ESTABLISHED, arena.CREATED_BY_USER_ID, arena.CREATED_TS, arena.ACTIVE";
+        return "arena.ARENA_ID, arena.NAME, arena.DESCRIPTION, arena.ESTABLISHED, arena.CREATED_BY_USER_ID, arena.CREATED_TS, arena.MODIFIED_TS, arena.ACTIVE";
     }
 }

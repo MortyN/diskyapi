@@ -180,7 +180,7 @@ public class PostController {
     private static List<Long> getUserRelations(User user) throws PostControllerException {
         List<Long> userIds = new ArrayList<>();
         Connection conn = DatabaseConnection.getConnection();
-
+        //TODO: Dont get user id if deactivated
         String sqlOne = "SELECT user_links.USER_ID_LINK1 AS userId FROM user_links WHERE user_links.USER_ID_LINK2 = ?";
         String sqlTwo = "SELECT user_links.USER_ID_LINK2 AS userId FROM user_links WHERE user_links.USER_ID_LINK1 = ?";
 

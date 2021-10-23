@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/api/v1/post")
 @RestController
 @CrossOrigin
-public class PostEndPoint {
+public class PostEndpoint {
 
     @PostMapping(path="/create")
     public Post create(@RequestBody(required = true) Post post) throws PostControllerException {

@@ -17,7 +17,7 @@ import java.util.List;
 @RequestMapping("/api/v1/userLink")
 @RestController
 @CrossOrigin
-public class UserLinkEndPoint {
+public class UserLinkEndpoint {
 
     @PostMapping(path="/create")
     public UserLink create(@RequestBody(required = true) UserLink userLink) throws UserLinkException {
