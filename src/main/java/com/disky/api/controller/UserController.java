@@ -8,6 +8,7 @@ import com.disky.api.model.User;
 import com.disky.api.util.DatabaseConnection;
 import com.disky.api.util.Parse;
 import jdk.jshell.spi.ExecutionControl;
+import org.slf4j.event.Level;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -41,7 +42,10 @@ public class UserController {
         try {
             int psId = 1;
 
-            if(user.getUserId() != 0L) update(user);
+            if(user.getUserId() != 0L) {
+                update(user);
+                return;
+            }
 
             String sql = "INSERT INTO users (USERNAME, FIRST_NAME, LAST_NAME, PHONE_NUMBER, PASSWORD) values (?,?,?,?,?)";
 
@@ -106,7 +110,6 @@ public class UserController {
 
        try {
            String where = "WHERE 1=1 ";
-
 
            if (!Parse.nullOrEmpty(filter.getUserIds())) {
                where += " AND users.USER_ID in ( " + Parse.listAsQuestionMarks(filter.getUserIds()) + ")";

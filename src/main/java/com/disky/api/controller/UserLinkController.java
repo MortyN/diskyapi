@@ -18,6 +18,7 @@ public class UserLinkController {
     public static void create(UserLink link) throws UserLinkException {
         Logger log = Logger.getLogger(String.valueOf(UserLinkController.class));
       try {
+          link.setCreatedTimeStamp(new Timestamp(System.currentTimeMillis()));
           Connection conn = DatabaseConnection.getConnection();
           int psId = 1;
 
@@ -31,7 +32,7 @@ public class UserLinkController {
 
           link.setUserLink1(UserController.getOne(link.getUserLink1()));
           link.setUserLink2(UserController.getOne(link.getUserLink2()));
-          link.setCreatedTimeStamp(new java.util.Date());
+          link.setCreatedTimeStamp(link.getCreatedTimeStamp());
 
           log.info("Rows affected: " + stmt.executeUpdate());
       } catch (SQLException | GetUserException e) {
@@ -162,7 +163,7 @@ public class UserLinkController {
                         user_id_link2,
                         res.getInt("STATUS"),
                         res.getInt("TYPE"),
-                        res.getDate("CREATED_TS")
+                        res.getTimestamp("CREATED_TS")
                 );
                 userLinkResult.add(link);
             }

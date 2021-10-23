@@ -3,6 +3,7 @@ package com.disky.api.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 @EqualsAndHashCode
@@ -18,9 +19,9 @@ public class UserLink {
     private User userLink2;
     private Integer status;
     private Integer type;
-    private Date createdTimeStamp;
+    private Timestamp createdTimeStamp;
 
-    public UserLink(User userLink1, User userLink2, Integer status, Integer type, Date createdTimeStamp) {
+    public UserLink(User userLink1, User userLink2, Integer status, Integer type, Timestamp createdTimeStamp) {
         this.userLink1 = userLink1;
         this.userLink2 = userLink2;
         this.status = status;
