@@ -1,7 +1,11 @@
 package com.disky.api.model;
 
+import com.disky.api.util.Parse;
 import lombok.Data;
 import lombok.NonNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 public class User {
@@ -11,6 +15,8 @@ public class User {
     private String lastName;
     private String phoneNumber;
     private String password;
+
+    private List<UserLink> userLinks;
 
     public User(long userId) {
         this.userId = userId;
@@ -23,5 +29,15 @@ public class User {
         this.lastName = lastName;
         this.phoneNumber = phoneNumber;
         this.password = password;
+    }
+
+    public void addUserLink(UserLink link){
+        if(!Parse.nullOrEmpty(this.userLinks)) this.userLinks = new ArrayList<>();
+        this.userLinks.add(link);
+    }
+
+    public static String getColumns(){
+        return "users.USER_ID, users.USERNAME, users.FIRST_NAME, " +
+                "users.LAST_NAME, users.PHONE_NUMBER, users.PASSWORD ";
     }
 }
