@@ -14,12 +14,13 @@ public class Arena {
     private User createdBy;
     private Date createdTs;
     private Date updateTs;
+    private boolean active;
 
     public Arena(Long arenaId) {
         this.arenaId = arenaId;
     }
 
-    public Arena(Long arenaId, String arenaName, String description, Integer established, User createdBy, Date createdTs, Date updateTs) {
+    public Arena(Long arenaId, String arenaName, String description, Integer established, User createdBy, Date createdTs, Date updateTs, boolean active) {
         this.arenaId = arenaId;
         this.arenaName = arenaName;
         this.description = description;
@@ -27,5 +28,6 @@ public class Arena {
         this.createdBy = createdBy;
         this.createdTs = createdTs;
         this.updateTs = updateTs;
+        this.active = active;
     }
 }
