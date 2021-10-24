@@ -11,7 +11,7 @@ import java.util.List;
 @RequestMapping("/api/v1/arena")
 @RestController
 @CrossOrigin
-public class ArenaEndpoint {
+public class ArenaEndpoint{
 
     @PostMapping(path="/create")
     public Arena create(@RequestBody(required = true) Arena arena) throws ArenaException {

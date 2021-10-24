@@ -14,7 +14,9 @@ import java.util.List;
 public class UserEndpoint {
     @GetMapping("/getOne")
     public User getOne(@RequestParam Long userId) throws  GetUserException{
-        return UserController.getOne(new User(userId));
+        UserFilter filter = new UserFilter();
+        filter.addUserIds(userId);
+        return UserController.getOne(filter);
     }
 
     @PostMapping("/create")

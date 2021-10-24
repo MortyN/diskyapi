@@ -7,8 +7,6 @@ import com.disky.api.filter.UserLinkFilter;
 import com.disky.api.model.User;
 import com.disky.api.util.DatabaseConnection;
 import com.disky.api.util.Parse;
-import jdk.jshell.spi.ExecutionControl;
-import org.slf4j.event.Level;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -16,7 +14,9 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class UserController {
+    private static final int workload = 12;
 //TODO: Fix transaction and internal transaction logic
+
 
     public static void delete(User user) throws  GetUserException {
         Connection conn = DatabaseConnection.getConnection();
@@ -64,7 +64,6 @@ public class UserController {
         }
 
     }
-
     private static void update(User user) throws GetUserException {
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
         Connection conn = DatabaseConnection.getConnection();
@@ -86,11 +85,14 @@ public class UserController {
            throw new GetUserException("Unable to update user");
        }
     }
-    public static User getOne(User user) throws GetUserException {
+    protected static User getOne(User user) throws GetUserException {
         UserFilter filter = new UserFilter();
         filter.addUserIds(user.getUserId());
-        return getOne(filter);
+        User rawUser = getOne(filter);
+        rawUser.setPassword("***********");
+        return rawUser;
     }
+
     public static User getOne(UserFilter filter) throws GetUserException {
         List<User> users = get(filter);
 
@@ -245,5 +247,30 @@ public class UserController {
            throw new GetUserException("Unable to get user");
        }
     }
+    //TODO:  Make this real
+    public static User authUser(String userName, String password) throws SQLException, GetUserException {
+        User loggedInUser = null;
+        Connection conn = DatabaseConnection.getConnection();
+        String select = "SELECT * FROM users WHERE USERNAME = ? AND PASSWORD = ? ";
 
+        PreparedStatement stmt = conn.prepareStatement(select);
+
+        stmt.setString(1,userName);
+        stmt.setString(2,password);
+
+        ResultSet res = stmt.executeQuery();
+        if(res.next()){
+            loggedInUser = new User(
+                    res.getLong("USER_ID"),
+                    res.getString("USERNAME"),
+                    res.getString("FIRST_NAME"),
+                    res.getString("LAST_NAME"),
+                    res.getString("PHONE_NUMBER"),
+                    res.getString("PASSWORD")
+            );
+        }else if(loggedInUser == null){
+            throw new GetUserException("Wrong combination");
+        }
+        return loggedInUser;
+    };
 }
