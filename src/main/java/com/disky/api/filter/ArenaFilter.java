@@ -1,7 +1,9 @@
 package com.disky.api.filter;
 
+import com.disky.api.util.Parse;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -10,5 +12,13 @@ public class ArenaFilter {
     private List<String> names;
     private List<Long> createdBy;
 
+    private boolean getArenaRounds = false;
+
     private boolean isActive = true;
+
+    public ArenaFilter addArenaIds(Long arenaId){
+        if(Parse.nullOrEmpty(this.arenaIds)) this.arenaIds = new ArrayList<>();
+        this.arenaIds.add(arenaId);
+        return this;
+    }
 }

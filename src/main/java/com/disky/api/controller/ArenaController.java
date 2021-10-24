@@ -4,9 +4,7 @@ import com.disky.api.Exceptions.ArenaException;
 import com.disky.api.Exceptions.GetUserException;
 import com.disky.api.Exceptions.UserLinkException;
 import com.disky.api.filter.ArenaFilter;
-import com.disky.api.model.Arena;
-import com.disky.api.model.User;
-import com.disky.api.model.UserLink;
+import com.disky.api.model.*;
 import com.disky.api.util.DatabaseConnection;
 import com.disky.api.util.Parse;
 
@@ -22,7 +20,7 @@ import java.util.logging.Logger;
 public class ArenaController {
 
 
-    public static Arena changeActive(Arena arena) throws ArenaException {
+    public static void delete(Arena arena) throws ArenaException {
         Connection conn = DatabaseConnection.getConnection();
         try {
             Logger log = Logger.getLogger(String.valueOf(ArenaController.class));
@@ -37,7 +35,6 @@ public class ArenaController {
             arena.setUpdateTs(new Timestamp(System.currentTimeMillis()));
             log.info(sql);
             log.info("Rows affected " + stmt.executeUpdate());
-            return arena;
         } catch (SQLException e) {
             throw new ArenaException(e.getMessage());
         }
@@ -94,15 +91,24 @@ public class ArenaController {
             throw new ArenaException(e.getMessage());
         }
     }
+    public static Arena get(Arena arena) throws ArenaException {
+        ArenaFilter arenaFilter = new ArenaFilter();
+        arenaFilter.addArenaIds(arena.getArenaId());
+        List<Arena> arenas = get(arenaFilter);
+        if(arenas.size() > 1) throw new ArenaException("Expected one Arena got: " + arenas.size() + ". for ArenaId: " + arena.getArenaId());
 
+        return arenas.get(0);
+    }
     public static List<Arena> get(ArenaFilter filter) throws ArenaException {
         Logger log = Logger.getLogger(String.valueOf(ArenaController.class));
         List<Arena> arenaResult = new ArrayList<>();
 
         Connection conn = DatabaseConnection.getConnection();
+        String leftJoin = "";
+        String fields = Arena.getColumns();
 
         try {
-            String where = "WHERE ACTIVE = ?  ";
+            String where = "WHERE arena.ACTIVE = ?  ";
 
             if (!Parse.nullOrEmpty(filter.getArenaIds())) {
                 where += " AND arena.ARENA_ID in ( " + Parse.listAsQuestionMarks(filter.getArenaIds()) + ")";
@@ -115,7 +121,13 @@ public class ArenaController {
                 where += " AND arena.CREATED_BY_USER_ID in ( " + Parse.listAsQuestionMarks(filter.getCreatedBy()) + ")";
             }
 
-            String sql = "SELECT " + Arena.getColumns() + " FROM arena " + where;
+            if(filter.isGetArenaRounds()){
+                leftJoin += " LEFT JOIN arena_rounds USING(ARENA_ID) LEFT JOIN arena_rounds_hole ON arena_rounds.ARENA_ROUND_ID = arena_rounds_hole.ARENA_ROUND_ID ";
+                fields += ", " + ArenaRound.getColumns() + ", " + ArenaRoundHole.getColumns();
+                where += " ORDER BY arena.ARENA_ID, arena_rounds.ARENA_ROUND_ID, arena_rounds_hole.ORDER ";
+            }
+
+            String sql = "SELECT " + fields + " FROM arena " + leftJoin +  where;
             PreparedStatement stmt = conn.prepareStatement(sql);
             int psId = 1;
 
@@ -137,24 +149,65 @@ public class ArenaController {
                         stmt.setLong(psId++, createdById);
                     }
                 }
+
                 log.info(stmt.toString());
 
                 ResultSet res = stmt.executeQuery();
-                while (res.next()) {
-                    User user = UserController.getOne(new User(res.getLong("CREATED_BY_USER_ID")));
-                    Arena arena = new Arena(
-                            res.getLong("ARENA_ID"),
-                            res.getString("NAME"),
-                            res.getString("DESCRIPTION"),
-                            res.getDate("ESTABLISHED"),
-                            user,
-                            res.getTimestamp("CREATED_TS"),
-                            res.getTimestamp("MODIFIED_TS"),
-                            res.getBoolean("ACTIVE"));
 
-                    arenaResult.add(arena);
+                Arena arena = null;
+                User user = null;
+                ArenaRound arenaRound = null;
+
+                while (res.next()) {
+                Long arenaId =  res.getLong("ARENA_ARENA_ID");
+
+                if(!arenaResult.stream().anyMatch(o -> o.getArenaId().equals(arenaId))){
+                   user =  UserController.getOne(new User(res.getLong("ARENA_CREATED_BY_USER_ID")));
+                        arena = new Arena(
+                                res.getLong("ARENA_ARENA_ID"),
+                                res.getString("ARENA_NAME"),
+                                res.getString("ARENA_DESCRIPTION"),
+                                res.getDate("ARENA_ESTABLISHED"),
+                                user,
+                                res.getTimestamp("ARENA_CREATED_TS"),
+                                res.getTimestamp("ARENA_MODIFIED_TS"),
+                                res.getBoolean("ARENA_ACTIVE"));
+
+                        arenaResult.add(arena);
+                    }
+                    if(filter.isGetArenaRounds() && res.getLong("ARENA_ROUNDS_ARENA_ROUND_ID") != 0){
+                        Long arenaRoundId = res.getLong("ARENA_ROUNDS_ARENA_ROUND_ID");
+
+                        if(Parse.nullOrEmpty(arena.getRounds()) || (!arena.getRounds().stream().anyMatch(o -> o.getArenaRoundId().equals(arenaRoundId)))) {
+                            arenaRound = new ArenaRound(
+                                            arenaRoundId,
+                                            new Arena(arena.getArenaId()),
+                                            res.getInt("ARENA_ROUNDS_HOLE_AMOUNT"),
+                                            res.getBoolean("ARENA_ROUNDS_PAYMENT"),
+                                            res.getString("ARENA_ROUNDS_DESCRIPTION"),
+                                            user,
+                                            res.getTimestamp("ARENA_ROUNDS_CREATED_TS"),
+                                            res.getTimestamp("ARENA_ROUNDS_MODIFIED_TS"),
+                                            res.getBoolean("ARENA_ACTIVE")
+                                    );
+                            arena.addRounds(arenaRound);
+                        }
+                        Long arenaRoundHoleId = res.getLong("ARENA_ROUNDS_HOLE_ARENA_ROUND_HOLE_ID");
+                        if(Parse.nullOrEmpty(arenaRound.getHoles()) || (!arenaRound.getHoles().stream().anyMatch(o -> o.getArenaRoundHoleId().equals(arenaRoundHoleId)))){
+                            arenaRound.addHoles(new ArenaRoundHole(
+                                                    arenaRoundHoleId,
+                                                    new ArenaRound(arenaRoundId),
+                                                    res.getString("ARENA_ROUNDS_HOLE_HOLE_NAME"),
+                                                    res.getInt("ARENA_ROUNDS_HOLE_PAR_VALUE"),
+                                                    res.getBoolean("ARENA_ROUNDS_HOLE_ACTIVE"),
+                                                    res.getString("ARENA_ROUNDS_HOLE_LATITUDE"),
+                                                    res.getString("ARENA_ROUNDS_HOLE_LONGITUDE"),
+                                                    res.getInt("ARENA_ROUNDS_HOLE_ORDER")
+                                                ));
+                        }
+                    }
                 }
-                log.info("Successfully retrieved " + arenaResult.size() + " users.");
+                log.info("Successfully retrieved " + arenaResult.size() + " arenas.");
                 return arenaResult;
             } catch(SQLException | GetUserException e){
                 throw new ArenaException(e.getMessage());

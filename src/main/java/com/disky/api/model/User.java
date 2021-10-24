@@ -9,7 +9,7 @@ import java.util.List;
 
 @Data
 public class User {
-    private long userId;
+    private Long userId;
     private String userName;
     private String firstName;
     private String lastName;
@@ -18,11 +18,11 @@ public class User {
 
     private List<UserLink> userLinks;
 
-    public User(long userId) {
+    public User(Long userId) {
         this.userId = userId;
     }
 
-    public User(long userId, String userName, String firstName, String lastName, String phoneNumber, String password) {
+    public User(Long userId, String userName, String firstName, String lastName, String phoneNumber, String password) {
         this.userId = userId;
         this.userName = userName;
         this.firstName = firstName;

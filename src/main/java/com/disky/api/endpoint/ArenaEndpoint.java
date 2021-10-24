@@ -1,13 +1,9 @@
 package com.disky.api.endpoint;
 
 import com.disky.api.Exceptions.ArenaException;
-import com.disky.api.Exceptions.PostControllerException;
 import com.disky.api.controller.ArenaController;
-import com.disky.api.controller.PostController;
 import com.disky.api.filter.ArenaFilter;
-import com.disky.api.filter.PostFilter;
 import com.disky.api.model.Arena;
-import com.disky.api.model.Post;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,8 +20,8 @@ public class ArenaEndpoint {
     }
 
     @DeleteMapping()
-    public static Arena delete(@RequestParam(required = true)  Long arenaId) throws ArenaException {
-        return ArenaController.changeActive(new Arena(arenaId));
+    public static void delete(@RequestParam(required = true)  Long arenaId) throws ArenaException {
+        ArenaController.delete(new Arena(arenaId));
     }
 
     @PostMapping("/get")
