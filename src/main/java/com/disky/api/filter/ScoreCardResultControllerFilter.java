@@ -11,6 +11,5 @@ public class ScoreCardResultControllerFilter {
     private ScoreCardMember scoreCardMember;
     private ArenaRoundHole arenaRoundHole;
     private Integer scoreValue;
-    private Long ScoreResultId;
 
 }

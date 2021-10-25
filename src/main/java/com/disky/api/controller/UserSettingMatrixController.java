@@ -108,7 +108,7 @@ public class UserSettingMatrixController {
 
         try {
             UserSetting userSetting = new UserSetting(filter.getSetting_Id(), filter.getSetting_Name(), filter.getSettingDescription());
-            String where = "where";
+            String where = "where 1=1 ";
             String innerJoin = " INNER JOIN user_settings USING(SETTING_ID)";
             if (filter.getUser().getUserId() != null) {
                 where += " user_settings_matrix.USER_ID = ?";
