@@ -1,6 +1,7 @@
 package com.disky.api.controller;
 
 import com.disky.api.Exceptions.ArenaException;
+import com.disky.api.Exceptions.ScoreCardMemberException;
 import com.disky.api.Exceptions.ScoreCardResultException;
 import com.disky.api.filter.ScoreCardResultControllerFilter;
 import com.disky.api.model.Arena;
@@ -83,8 +84,11 @@ public class ScoreCardResultController {
             if (filter.getScoreValue() != null){
                 where += "AND score_card_result.SCORE_VALUE = ?";
             }
-
-            String sql = "SELECT *" + where;
+            // INNER JOIN: arenaRoundHole
+            // Lag metode i ArenaRoundHole.java get columns med ALIAS
+            // Lag metode i ScoreCardResult.java get columns med ALIAS
+            // hente ut ful object ved hjelp avc constructor i whilen
+            String sql = "SELECT * FROM " + where;
             PreparedStatement stmt = conn.prepareStatement(sql);
             int psId = 1;
 
@@ -103,7 +107,7 @@ public class ScoreCardResultController {
             }
             log.info("Successfully retrieved: " + scoreCardResults.size());
             return scoreCardResults;
-        } catch (SQLException | ScoreCardResultException | ArenaException e){
+        } catch (SQLException | ScoreCardResultException | ArenaException | ScoreCardMemberException e){
             throw new ScoreCardResultException(e.getMessage());
         }
 

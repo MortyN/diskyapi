@@ -50,7 +50,15 @@ public class ScoreCardMemberController {
             throw new ScoreCardMemberException(e.getMessage());
         }
     }
-
+    protected static ScoreCardMember get(ScoreCardMember member) throws ScoreCardMemberException{
+       ScoreCardMemberFilter filter = new ScoreCardMemberFilter();
+       filter.setScoreCardMemberId(member.getScoreCardMemberId());
+       List<ScoreCardMember> members =  get(filter);
+       if(members.size() > 1){
+           throw new ScoreCardMemberException("Expected one got : " + members.size());
+       }
+       return members.get(0);
+    }
     public static List<ScoreCardMember> get(ScoreCardMemberFilter filter) throws ScoreCardMemberException{
         Logger log = Logger.getLogger(String.valueOf(ScoreCardMemberController.class));
         List<ScoreCardMember> scoreCardMemberResult = new ArrayList<>();
