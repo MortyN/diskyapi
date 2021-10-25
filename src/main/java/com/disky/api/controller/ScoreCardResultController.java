@@ -1,5 +1,8 @@
 package com.disky.api.controller;
 
+import com.disky.api.Exceptions.ScoreCardResultException;
+import com.disky.api.model.ScoreCardResult;
+
 public class ScoreCardResultController {
     //TODO: Make a filter
     //TODO: Make an exceptionHandler
@@ -9,5 +12,7 @@ public class ScoreCardResultController {
     //TODO: GET -
 
 
+    public static void save(ScoreCardResult scoreCardResult) throws ScoreCardResultException{
 
+    }
 }
