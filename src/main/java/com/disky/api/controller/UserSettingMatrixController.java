@@ -130,21 +130,27 @@ public class UserSettingMatrixController {
             ResultSet res = stmt.executeQuery();
 
             while (res.next()) {
-                UserSetting newUserSetting = new UserSetting("user_settings.SETTING_ID", "user_setting.SETTING_NAME", "user_setting.SETTING_DESCRIPTION");
+                UserSetting newUserSetting = new UserSetting(
+                        res.getLong("user_settings.SETTING_ID"),
+                        res.getString("user_setting.SETTING_NAME"),
+                        res.getString("user_setting.SETTING_DESCRIPTION")
+                );
                 //TODO: Figure out how to create user without requesting the db.
                 UserSettingMatrix userSettingMatrix = new UserSettingMatrix(
                             newUserSetting,
-                        UserController.get(res.getLong("user_settings_matrix.USER_ID")),
+                        UserController.getOne(new User(
+                                res.getLong("user_settings_matrix.USER_ID"))),
                         "usersettingmatrix.SETTING_VALUE",
-                        "usersettingmatrix.ACTIVE"
+                            "usersettingmatrix.ACTIVE"
                         );
                 userSettingMatrixResult.add(userSettingMatrix);
             }
             log.info("Successfully retrieved " + userSettingMatrixResult.size() + " settings.");
             return userSettingMatrixResult;
 
-        } catch (SQLException | UserSettingsMatrixException e){
+        } catch (SQLException | UserSettingsMatrixException | GetUserException e){
             throw new UserSettingsMatrixException(e.getMessage());
         }
+        return null;
     }
 }

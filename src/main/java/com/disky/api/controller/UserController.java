@@ -7,6 +7,8 @@ import com.disky.api.filter.UserLinkFilter;
 import com.disky.api.model.User;
 import com.disky.api.util.DatabaseConnection;
 import com.disky.api.util.Parse;
+import com.disky.api.util.S3Util;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -36,9 +38,10 @@ public class UserController {
         //TODO: Slett fra alle andre tabeller også
     }
 
-    public static void save(User user) throws GetUserException {
+    public static void save(User user, MultipartFile file) throws GetUserException {
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
         Connection conn = DatabaseConnection.getConnection();
+        String fileName = "";
         try {
             int psId = 1;
 
@@ -46,7 +49,11 @@ public class UserController {
                 update(user);
                 return;
             }
+            if(file != null){
+                fileName = "";
+                S3Util.s3UploadPhoto(file, file.getOriginalFilename());
 
+            }
             String sql = "INSERT INTO users (USERNAME, FIRST_NAME, LAST_NAME, PHONE_NUMBER, PASSWORD) values (?,?,?,?,?)";
 
             PreparedStatement stmt = conn.prepareStatement(sql);
@@ -237,7 +244,6 @@ public class UserController {
                        res.getString("PHONE_NUMBER"),
                        res.getString("PASSWORD")
                );
-
                userResult.add(user);
            }
            log.info("Successfully retireved: " + userResult.size() + " users.");

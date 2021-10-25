@@ -56,7 +56,6 @@ public class S3Util {
     }
 
     public static void s3UploadPhoto(MultipartFile tempfile, String fileName) {
-        if (tempfile == null)return;
         try {
 //            InputStream stream = new ByteArrayInputStream(file.getBytes());
             File file = multipartToFile(tempfile, fileName+".jpeg");

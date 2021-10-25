@@ -23,20 +23,10 @@ public class UserEndpoint {
         return UserController.getOne(filter);
     }
 
-//    @PostMapping(path = "/create", consumes = { "multipart/mixed" })
-//    public User createUser(@RequestPart(value = "user") User user, @RequestPart(required = false, value = "image")MultipartFile file) throws  GetUserException {
-//        S3Util.s3UploadPhoto(file, file.getName());
-//        UserController.save(user);
-//
-//        return null;
-//    }
-
     @PostMapping(path = "/create", consumes = { "multipart/form-data" })
     public User createUser(@RequestPart(required = true, name = "user") User user, @RequestPart(required = false, name = "image") MultipartFile file) throws  GetUserException {
-        S3Util.s3UploadPhoto(file, file.getOriginalFilename());
-        UserController.save(user);
-
-        return null;
+        UserController.save(user, file);
+        return user;
     }
 
     @PostMapping("/get")

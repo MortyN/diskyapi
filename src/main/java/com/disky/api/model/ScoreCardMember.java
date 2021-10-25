@@ -17,4 +17,5 @@ public class ScoreCardMember {
         this.user = user;
         this.scoreCard = scoreCard;
     }
+
 }
