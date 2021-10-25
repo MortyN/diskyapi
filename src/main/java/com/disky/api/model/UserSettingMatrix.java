@@ -15,4 +15,8 @@ public class UserSettingMatrix {
         this.settingValue = settingValue;
         this.active = active;
     }
+
+    public static String getColumns(){
+        return "user_settings_matrix.SETTING_ID, user_settings_matrix.SETTING_VALUE, user_settings_matrix.ACTIVE FROM user_settings_matrix ";
+    }
 }

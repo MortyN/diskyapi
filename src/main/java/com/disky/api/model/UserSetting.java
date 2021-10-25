@@ -18,4 +18,8 @@ public class UserSetting {
         this.settingName = settingName;
         this.settingDescription = settingDescription;
     }
+
+    public static String getColumns(){
+        return "user_settings.SETTING_NAME, user_settings.SETTING_DESCRIPTION";
+    }
 }
