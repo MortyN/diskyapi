@@ -109,7 +109,7 @@ public class PostController {
         Logger log = Logger.getLogger(String.valueOf(PostController.class));
         Connection conn = DatabaseConnection.getConnection();
         try {
-            if(post.getPostId() != null){
+            if(post.getPostId() != null && post.getPostId() != null){
                 update(post);
                 return;
             }

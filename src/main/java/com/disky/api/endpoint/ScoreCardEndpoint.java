@@ -5,6 +5,7 @@ import com.disky.api.Exceptions.ScoreCardException;
 import com.disky.api.controller.PostController;
 import com.disky.api.controller.ScoreCardController;
 import com.disky.api.filter.PostFilter;
+import com.disky.api.filter.ScoreCardFilter;
 import com.disky.api.model.Post;
 import com.disky.api.model.ScoreCard;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +27,7 @@ public class ScoreCardEndpoint {
     }
 
     @PostMapping("/get")
-    public static List<Post> get(@RequestBody(required = true) PostFilter postFilter) throws PostControllerException {
-        return PostController.getPost(postFilter);
+    public static List<ScoreCard> get(@RequestBody(required = true) ScoreCardFilter filter) throws ScoreCardException {
+        return ScoreCardController.getScoreCard(filter);
     }
 }

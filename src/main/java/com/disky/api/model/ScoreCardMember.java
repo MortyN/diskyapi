@@ -18,4 +18,10 @@ public class ScoreCardMember {
         this.scoreCard = scoreCard;
     }
 
+    public static String getColumns(){
+        return " score_card_members.SCORE_CARD_MEMBER_ID SCORE_CARD_MEMBERS_SCORE_CARD_MEMBER_ID, " +
+                "score_card_members.USER_ID SCORE_CARD_MEMBERS_USER_ID, " +
+                "score_card_members.CARD_ID SCORE_CARD_MEMBERS_CARD_ID ";
+    }
+
 }

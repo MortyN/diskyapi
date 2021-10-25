@@ -23,7 +23,7 @@ public class UserEndpoint {
         return UserController.getOne(filter);
     }
 
-    @PostMapping(path = "/create", consumes = { "multipart/form-data" })
+    @PostMapping(path = "/create", consumes = {"multipart/form-data"})
     public User createUser(@RequestPart(required = true, name = "user") User user, @RequestPart(required = false, name = "image") MultipartFile file) throws  GetUserException {
         UserController.save(user, file);
         return user;

@@ -101,7 +101,7 @@ public class UserSettingMatrixController {
     }
 
     public static List<UserSettingMatrix> get(UserSettingMatrixFilter filter) throws UserSettingsMatrixException {
-        Logger log = Logger.getLogger(String.valueOf(UserSettingMatrixController.class));
+       /* Logger log = Logger.getLogger(String.valueOf(UserSettingMatrixController.class));
         List<UserSettingMatrix> userSettingMatrixResult = new ArrayList<>();
 
         Connection conn = DatabaseConnection.getConnection();
@@ -150,7 +150,7 @@ public class UserSettingMatrixController {
 
         } catch (SQLException | UserSettingsMatrixException | GetUserException e){
             throw new UserSettingsMatrixException(e.getMessage());
-        }
+        }*/
         return null;
     }
 }

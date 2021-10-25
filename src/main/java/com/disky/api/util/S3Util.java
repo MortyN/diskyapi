@@ -6,15 +6,16 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.disky.api.Exceptions.UserImageUploadException;
+import com.disky.api.controller.UserController;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.logging.Logger;
 
 //@Service
 //class S3Util {
@@ -44,10 +45,10 @@ import java.nio.file.Paths;
 
 @Service
 public class S3Util {
-    static Regions clientRegion = Regions.EU_NORTH_1;
+    static AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
+            .withRegion(Regions.EU_NORTH_1)
+            .build();
     static String bucketName = "prod-disky-images";
-    String stringObjKeyName = "*** String object key name ***";
-    String fileObjKeyName = "*** File object key name ***";
 
     public static File multipartToFile(MultipartFile multipart, String fileName) throws IllegalStateException, IOException {
         File convFile = new File(System.getProperty("java.io.tmpdir")+"/"+fileName);
@@ -55,34 +56,24 @@ public class S3Util {
         return convFile;
     }
 
-    public static void s3UploadPhoto(MultipartFile tempfile, String fileName) {
+    public static void s3UploadPhoto(MultipartFile tempFile, String fileName) throws UserImageUploadException {
+        Logger log = Logger.getLogger(String.valueOf(S3Util.class));
         try {
-//            InputStream stream = new ByteArrayInputStream(file.getBytes());
-            File file = multipartToFile(tempfile, fileName+".jpeg");
-            AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
-                    .withRegion(clientRegion)
-                    .build();
-
-            // Upload a file as a new object with ContentType and title specified.
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentType("image/*");
-            metadata.addUserMetadata("title", "someTitle");
+            File file = multipartToFile(tempFile, fileName+".jpeg");
 
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, file.getName(),file).withCannedAcl(CannedAccessControlList.PublicRead);
-//            s3Client.putObject(bucketName, fileName, stream, metadata);
             s3Client.putObject(putObjectRequest);
+            log.info("successfully uploaded image");
+        } catch (SdkClientException | IOException e) {
+            throw new UserImageUploadException(e.getMessage());
+        }
+    }
 
-        } catch (
-                AmazonServiceException e) {
-            // The call was transmitted successfully, but Amazon S3 couldn't process
-            // it, so it returned an error response.
-            e.printStackTrace();
+    public static void s3DeletePhoto(String keyName) throws UserImageUploadException {
+        try {
+            s3Client.deleteObject(new DeleteObjectRequest(bucketName, keyName));
         } catch (SdkClientException e) {
-            // Amazon S3 couldn't be contacted for a response, or the client
-            // couldn't parse the response from Amazon S3.
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+             throw new UserImageUploadException(e.getMessage());
         }
     }
 

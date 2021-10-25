@@ -31,9 +31,17 @@ public class ScoreCard {
     }
 
     public ScoreCard addMember(ScoreCardMember member){
-        if(!Parse.nullOrEmpty(this.members)) this.members = new ArrayList<>();
+        if(Parse.nullOrEmpty(this.members)) this.members = new ArrayList<>();
         this.members.add(member);
         return this;
 
+    }
+
+    public static String getColumns(){
+        return " score_cards.CARD_ID SCORE_CARDS_CARD_ID, " +
+                "score_cards.ARENA_ROUND_ID SCORE_CARDS_ARENA_ROUND_ID, " +
+                "score_cards.START_TS SCORE_CARDS_START_TS, " +
+                "score_cards.END_TS SCORE_CARDS_END_TS, " +
+                "score_cards.CREATED_BY_USER_ID SCORE_CARDS_CREATED_BY_USER ";
     }
 }

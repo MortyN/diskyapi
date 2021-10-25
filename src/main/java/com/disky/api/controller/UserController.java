@@ -1,6 +1,7 @@
 package com.disky.api.controller;
 
 import com.disky.api.Exceptions.GetUserException;
+import com.disky.api.Exceptions.UserImageUploadException;
 import com.disky.api.Exceptions.UserLinkException;
 import com.disky.api.filter.UserFilter;
 import com.disky.api.filter.UserLinkFilter;
@@ -10,13 +11,14 @@ import com.disky.api.util.Parse;
 import com.disky.api.util.S3Util;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
 public class UserController {
-    private static final int workload = 12;
 //TODO: Fix transaction and internal transaction logic
 
 
@@ -44,17 +46,21 @@ public class UserController {
         String fileName = "";
         try {
             int psId = 1;
+            String fields= "";
+            String values ="";
 
-            if(user.getUserId() != 0L) {
-                update(user);
+            if(user.getUserId() != null && user.getUserId() != 0L) {
+                update(user,file);
                 return;
             }
             if(file != null){
-                fileName = "";
-                S3Util.s3UploadPhoto(file, file.getOriginalFilename());
-
+                SecureRandom random = new SecureRandom();
+                fileName = new BigInteger(130, random).toString(32);
+                S3Util.s3UploadPhoto(file, fileName);
+                fields += ", IMG_KEY";
+                values += ",?";
             }
-            String sql = "INSERT INTO users (USERNAME, FIRST_NAME, LAST_NAME, PHONE_NUMBER, PASSWORD) values (?,?,?,?,?)";
+            String sql = "INSERT INTO users (USERNAME, FIRST_NAME, LAST_NAME, PHONE_NUMBER, PASSWORD" + fields +") values (?,?,?,?,?" + values + ")";
 
             PreparedStatement stmt = conn.prepareStatement(sql);
 
@@ -64,20 +70,36 @@ public class UserController {
             stmt.setString(psId++, user.getPhoneNumber());
             stmt.setString(psId++, user.getPassword());
 
+            if(file!= null){
+                stmt.setString(psId++, fileName);
+            }
+
             log.info("Rows affected: " + stmt.executeUpdate());
 
-        } catch (SQLException e) {
+        } catch (SQLException | UserImageUploadException e) {
             throw new GetUserException(e.getMessage());
         }
 
     }
-    private static void update(User user) throws GetUserException {
+    private static void update(User user, MultipartFile file) throws GetUserException {
+        String fileName = null;
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
         Connection conn = DatabaseConnection.getConnection();
        try {
            int psId = 1;
+           String fields= "";
 
-           String sql = "UPDATE users SET USERNAME = ?, FIRST_NAME = ?, LAST_NAME = ?, PHONE_NUMBER = ?, PASSWORD = ? WHERE USER_ID = ?";
+           if(file != null){
+               SecureRandom random = new SecureRandom();
+               fileName = new BigInteger(130, random).toString(32);
+               S3Util.s3UploadPhoto(file, fileName);
+               fields += ", IMG_KEY = ?";
+
+               if(user.getImgKey() != null){
+                   S3Util.s3DeletePhoto(user.getImgKey());
+               }
+           }
+           String sql = "UPDATE users SET USERNAME = ?, FIRST_NAME = ?, LAST_NAME = ?, PHONE_NUMBER = ?, PASSWORD = ?" + fields + "WHERE USER_ID = ?";
 
            PreparedStatement stmt = conn.prepareStatement(sql);
            stmt.setString(psId++, user.getUserName());
@@ -86,9 +108,10 @@ public class UserController {
            stmt.setString(psId++, user.getPhoneNumber());
            stmt.setString(psId++, user.getPassword());
            stmt.setLong(psId++, user.getUserId());
+           stmt.setString(psId++, fileName);
 
            log.info("Rows affected: " + stmt.executeUpdate());
-       } catch (SQLException throwables) {
+       } catch (SQLException | UserImageUploadException throwables) {
            throw new GetUserException("Unable to update user");
        }
     }
@@ -182,7 +205,8 @@ public class UserController {
                        res.getString("FIRST_NAME"),
                        res.getString("LAST_NAME"),
                        res.getString("PHONE_NUMBER"),
-                       res.getString("PASSWORD")
+                       res.getString("PASSWORD"),
+                       res.getString("IMG_KEY")
                );
 
                userResult.add(user);
@@ -190,6 +214,7 @@ public class UserController {
                if (filter.isGetUserLinks()) {
                    UserLinkFilter userLinkFilter = new UserLinkFilter();
                    userLinkFilter.setUser(user);
+                   //Join in later
                    user.setUserLinks(UserLinkController.getUserLinks(userLinkFilter));
                }
            }
@@ -242,7 +267,8 @@ public class UserController {
                        res.getString("FIRST_NAME"),
                        res.getString("LAST_NAME"),
                        res.getString("PHONE_NUMBER"),
-                       res.getString("PASSWORD")
+                       res.getString("PASSWORD"),
+                       res.getString("IMG_KEY")
                );
                userResult.add(user);
            }
@@ -272,7 +298,8 @@ public class UserController {
                     res.getString("FIRST_NAME"),
                     res.getString("LAST_NAME"),
                     res.getString("PHONE_NUMBER"),
-                    res.getString("PASSWORD")
+                    res.getString("PASSWORD"),
+                    res.getString("IMG_KEY")
             );
         }else if(loggedInUser == null){
             throw new GetUserException("Wrong combination");
