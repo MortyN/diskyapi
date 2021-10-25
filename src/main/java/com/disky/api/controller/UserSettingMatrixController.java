@@ -75,7 +75,7 @@ public class UserSettingMatrixController {
             stmt.setLong(psId++, userSettingMatrix.getUser().getUserId());
             stmt.setBoolean(psId++, userSettingMatrix.getActive());
 
-        } catch (SQLException e){
+        } catch (SQLException e) {
             throw new UserSettingsMatrixException(e.getMessage());
         }
     }
@@ -101,22 +101,22 @@ public class UserSettingMatrixController {
     }
 
     public static List<UserSettingMatrix> get(UserSettingMatrixFilter filter) throws UserSettingsMatrixException {
-       /* Logger log = Logger.getLogger(String.valueOf(UserSettingMatrixController.class));
+        Logger log = Logger.getLogger(String.valueOf(UserSettingMatrixController.class));
         List<UserSettingMatrix> userSettingMatrixResult = new ArrayList<>();
 
         Connection conn = DatabaseConnection.getConnection();
 
         try {
-            UserSetting userSetting = new UserSetting(filter.getSetting_Id(), filter.getSetting_Name(),filter.getSettingDescription());
-            String where = "where";
+            UserSetting userSetting = new UserSetting(filter.getSetting_Id(), filter.getSetting_Name(), filter.getSettingDescription());
+            String where = "where 1=1 ";
             String innerJoin = " INNER JOIN user_settings USING(SETTING_ID)";
             if (filter.getUser().getUserId() != null) {
-                 where += " user_settings_matrix.USER_ID = ?";
+                where += " user_settings_matrix.USER_ID = ?";
             }
             if (filter.getSetting_Name() != null) {
                 where += " AND user_settings.SETTING_NAME IN (" + filter.getSetting_Name() + ")";
             }
-            if (filter.isActive()){
+            if (filter.isActive()) {
                 where += " AND user_settings_matrix = ?";
             }
 
@@ -137,20 +137,19 @@ public class UserSettingMatrixController {
                 );
                 //TODO: Figure out how to create user without requesting the db.
                 UserSettingMatrix userSettingMatrix = new UserSettingMatrix(
-                            newUserSetting,
+                        newUserSetting,
                         UserController.getOne(new User(
                                 res.getLong("user_settings_matrix.USER_ID"))),
-                        "usersettingmatrix.SETTING_VALUE",
-                            "usersettingmatrix.ACTIVE"
-                        );
+                        res.getString("usersettingmatrix.SETTING_VALUE"),
+                        res.getBoolean("usersettingmatrix.ACTIVE")
+                );
                 userSettingMatrixResult.add(userSettingMatrix);
             }
             log.info("Successfully retrieved " + userSettingMatrixResult.size() + " settings.");
             return userSettingMatrixResult;
 
-        } catch (SQLException | UserSettingsMatrixException | GetUserException e){
+        } catch (SQLException | GetUserException e) {
             throw new UserSettingsMatrixException(e.getMessage());
-        }*/
-        return null;
+        }
     }
 }
