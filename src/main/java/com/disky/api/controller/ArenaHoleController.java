@@ -1,6 +1,8 @@
 package com.disky.api.controller;
 
 import com.disky.api.Exceptions.ArenaRoundException;
+import com.disky.api.filter.ArenaRoundFilter;
+import com.disky.api.model.Arena;
 import com.disky.api.model.ArenaRound;
 import com.disky.api.model.ArenaRoundHole;
 import com.disky.api.util.DatabaseConnection;
