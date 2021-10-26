@@ -13,4 +13,9 @@ public class ScoreCardResult {
         this.arenaRoundHole = arenaRoundHole;
         this.scoreValue = scoreValue;
     }
+
+    public static String getColumns(){
+       return  " score_card_result.SCORE_CARD_MEMBER_ID, score_card_result.ARENA_ROUND_HOLE_ID, score_card_result.SCORE_VALUE";
+    }
+
 }

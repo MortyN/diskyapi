@@ -3,8 +3,11 @@ package com.disky.api.controller;
 import com.disky.api.Exceptions.ArenaException;
 import com.disky.api.Exceptions.ScoreCardMemberException;
 import com.disky.api.Exceptions.ScoreCardResultException;
+import com.disky.api.filter.ArenaFilter;
+import com.disky.api.filter.ScoreCardMemberFilter;
 import com.disky.api.filter.ScoreCardResultControllerFilter;
 import com.disky.api.model.Arena;
+import com.disky.api.model.ArenaRoundHole;
 import com.disky.api.model.ScoreCardMember;
 import com.disky.api.model.ScoreCardResult;
 import com.disky.api.util.DatabaseConnection;
@@ -70,6 +73,7 @@ public class ScoreCardResultController {
     public static List<ScoreCardResult> get(ScoreCardResultControllerFilter filter) throws ScoreCardResultException {
         Logger log = Logger.getLogger(String.valueOf(ScoreCardResultController.class));
         List<ScoreCardResult> scoreCardResults = new ArrayList<>();
+        String join = "INNER JOIN arena_rounds_hole ON(score_card_result.ARENA_ROUND_HOLE_ID)";
 
         Connection conn = DatabaseConnection.getConnection();
 
@@ -85,10 +89,10 @@ public class ScoreCardResultController {
                 where += "AND score_card_result.SCORE_VALUE = ?";
             }
             // INNER JOIN: arenaRoundHole
-            // Lag metode i ArenaRoundHole.java get columns med ALIAS
-            // Lag metode i ScoreCardResult.java get columns med ALIAS
+            // Lag metode i ArenaRoundHole.java get columns med ALIAS - Done
+            // Lag metode i ScoreCardResult.java get columns med ALIAS - Done
             // hente ut ful object ved hjelp avc constructor i whilen
-            String sql = "SELECT * FROM " + where;
+            String sql = "SELECT " + ScoreCardResult.getColumns() + ", " + ArenaRoundHole.getColumns() + "FROM score_card_result " + join + " " + where;
             PreparedStatement stmt = conn.prepareStatement(sql);
             int psId = 1;
 
@@ -98,18 +102,18 @@ public class ScoreCardResultController {
             ResultSet res = stmt.executeQuery();
 
             while (res.next()){
+                ArenaRoundHole arenaRoundHole = new ArenaRoundHole(res.getLong("arena_round_hole.ARENA_ROUND_HOLE_ID"));
                 ScoreCardResult scoreCardResult = new ScoreCardResult(
                         ScoreCardMemberController.get(new ScoreCardMember(res.getLong("score_card_result.SCORE_CARD_MEMBER_ID"))),
-                        ArenaController.get(new Arena(res.getLong("score_card_result.ARENA_ROUND_HOLE_ID"))),
+                        arenaRoundHole,
                         res.getInt("score_card_result.SCORE_VALUE")
                 );
                 scoreCardResults.add(scoreCardResult);
             }
             log.info("Successfully retrieved: " + scoreCardResults.size());
             return scoreCardResults;
-        } catch (SQLException | ScoreCardResultException | ArenaException | ScoreCardMemberException e){
+        } catch (SQLException | ScoreCardMemberException e){
             throw new ScoreCardResultException(e.getMessage());
         }
-
     }
 }
