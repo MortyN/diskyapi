@@ -104,4 +104,8 @@ public class ArenaHoleController {
         if(hole.getArenaRound() == null || hole.getArenaRound().getArenaRoundId() == null || hole.getArenaRound().getArenaRoundId() == 0) throw new ArenaRoundException("ArenaRoundId is required");
         if(hole.getParValue() == null || hole.getParValue() == 0 ) throw new ArenaRoundException("ParValue is required");
     }
+
+    private static void getHole(ArenaRoundHole hole){
+
+    }
 }

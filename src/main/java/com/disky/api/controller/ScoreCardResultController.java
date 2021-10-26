@@ -8,6 +8,7 @@ import com.disky.api.model.Arena;
 import com.disky.api.model.ScoreCardMember;
 import com.disky.api.model.ScoreCardResult;
 import com.disky.api.util.DatabaseConnection;
+import org.springframework.transaction.TransactionManager;
 
 import javax.xml.crypto.Data;
 import java.sql.Connection;
@@ -30,7 +31,6 @@ public class ScoreCardResultController {
     public static void save(ScoreCardResult scoreCardResult) throws ScoreCardResultException{
         Logger log = Logger.getLogger(String.valueOf(ScoreCardResultController.class));
         Connection conn = DatabaseConnection.getConnection();
-
         try {
             int psId = 1;
             //TODO: Is this of correct?
@@ -98,12 +98,13 @@ public class ScoreCardResultController {
             ResultSet res = stmt.executeQuery();
 
             while (res.next()){
-                ScoreCardResult scoreCardResult = new ScoreCardResult(
+                Arena arena = ArenaController.get(new Arena(res.getLong("score_card_result.ARENA_ROUND_HOLE_ID")));
+                /*ScoreCardResult scoreCardResult = new ScoreCardResult(
                         ScoreCardMemberController.get(new ScoreCardMember(res.getLong("score_card_result.SCORE_CARD_MEMBER_ID"))),
                         ArenaController.get(new Arena(res.getLong("score_card_result.ARENA_ROUND_HOLE_ID"))),
                         res.getInt("score_card_result.SCORE_VALUE")
-                );
-                scoreCardResults.add(scoreCardResult);
+                );*/
+              // scoreCardResults.add(scoreCardResult);
             }
             log.info("Successfully retrieved: " + scoreCardResults.size());
             return scoreCardResults;
