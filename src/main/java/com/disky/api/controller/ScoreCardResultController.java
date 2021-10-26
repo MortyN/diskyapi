@@ -108,7 +108,7 @@ public class ScoreCardResultController {
             }
             log.info("Successfully retrieved: " + scoreCardResults.size());
             return scoreCardResults;
-        } catch (SQLException | ScoreCardResultException | ArenaException | ScoreCardMemberException e){
+        } catch (SQLException | ArenaException e){
             throw new ScoreCardResultException(e.getMessage());
         }
 

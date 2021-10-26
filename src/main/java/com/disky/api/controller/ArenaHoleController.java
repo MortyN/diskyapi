@@ -9,6 +9,7 @@ import com.disky.api.util.DatabaseConnection;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -107,7 +108,31 @@ public class ArenaHoleController {
         if(hole.getParValue() == null || hole.getParValue() == 0 ) throw new ArenaRoundException("ParValue is required");
     }
 
-    private static void getHole(ArenaRoundHole hole){
+    private static ArenaRoundHole getHole(ArenaRoundHole hole) throws ArenaRoundException{
+        Logger log = Logger.getLogger(String.valueOf(ArenaHoleController.class));
 
+        Connection conn = DatabaseConnection.getConnection();
+        try {
+            String sql = "SELECT * FROM arena_rounds_hole.ARENA_ROUND_HOLE_ID = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+
+            stmt.setLong(1, hole.getArenaRoundHoleId());
+
+            ResultSet res = stmt.executeQuery();
+
+            ArenaRoundHole arenaRoundHole = new ArenaRoundHole(
+                    res.getLong("arena_round_hole.ARENA_ROUND_HOLE_ID"),
+                    ArenaRoundController.get(new ArenaRound(res.getLong("arena_round_hole.ARENA_ROUND_ID"))),
+                    res.getString("arena_round_hole.HOLE_NAME"),
+                    res.getInt("arena_round_hole.PAR_VALUE"),
+                    res.getBoolean("arena_round_hole.ACTIVE"),
+                    res.getString("arena_round_hole.LATITUDE"),
+                    res.getString("arena_round_hole.LATITUDE"),
+                    res.getInt("arena_round_hole.SORT ARENA_ROUNDS_HOLE_ORDER")
+            );
+            return arenaRoundHole;
+        } catch (SQLException e){
+            throw new ArenaRoundException(e.getMessage());
+        }
     }
 }
