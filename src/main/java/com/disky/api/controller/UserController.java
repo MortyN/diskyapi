@@ -81,7 +81,7 @@ public class UserController {
         }
 
     }
-    private static void update(User user, MultipartFile file) throws GetUserException {
+    private static void update(User user, MultipartFile file) throws GetUserException, UserImageUploadException {
         String fileName = null;
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
         Connection conn = DatabaseConnection.getConnection();
@@ -99,7 +99,7 @@ public class UserController {
                    S3Util.s3DeletePhoto(user.getImgKey());
                }
            }
-           String sql = "UPDATE users SET USERNAME = ?, FIRST_NAME = ?, LAST_NAME = ?, PHONE_NUMBER = ?, PASSWORD = ?" + fields + "WHERE USER_ID = ?";
+           String sql = "UPDATE users SET USERNAME = ?, FIRST_NAME = ?, LAST_NAME = ?, PHONE_NUMBER = ?, PASSWORD = ?" + fields + " WHERE USER_ID = ?";
 
            PreparedStatement stmt = conn.prepareStatement(sql);
            stmt.setString(psId++, user.getUserName());
@@ -107,12 +107,16 @@ public class UserController {
            stmt.setString(psId++, user.getLastName());
            stmt.setString(psId++, user.getPhoneNumber());
            stmt.setString(psId++, user.getPassword());
-           stmt.setLong(psId++, user.getUserId());
            stmt.setString(psId++, fileName);
+           stmt.setLong(psId++, user.getUserId());
+           log.info(stmt.toString());
 
            log.info("Rows affected: " + stmt.executeUpdate());
-       } catch (SQLException | UserImageUploadException throwables) {
-           throw new GetUserException("Unable to update user");
+
+           user.setImgKey(fileName);
+       } catch (SQLException | UserImageUploadException e) {
+           S3Util.s3DeletePhoto(fileName);
+           throw new GetUserException(e.getMessage());
        }
     }
     protected static User getOne(User user) throws GetUserException {
