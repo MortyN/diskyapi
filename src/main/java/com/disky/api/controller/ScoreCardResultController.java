@@ -1,10 +1,12 @@
 package com.disky.api.controller;
 
 import com.disky.api.Exceptions.ArenaException;
+import com.disky.api.Exceptions.ArenaRoundException;
 import com.disky.api.Exceptions.ScoreCardMemberException;
 import com.disky.api.Exceptions.ScoreCardResultException;
 import com.disky.api.filter.ScoreCardResultControllerFilter;
 import com.disky.api.model.Arena;
+import com.disky.api.model.ArenaRoundHole;
 import com.disky.api.model.ScoreCardMember;
 import com.disky.api.model.ScoreCardResult;
 import com.disky.api.util.DatabaseConnection;
@@ -99,16 +101,15 @@ public class ScoreCardResultController {
 
             while (res.next()){
                 Arena arena = ArenaController.get(new Arena(res.getLong("score_card_result.ARENA_ROUND_HOLE_ID")));
-                /*ScoreCardResult scoreCardResult = new ScoreCardResult(
+                ScoreCardResult scoreCardResult = new ScoreCardResult(
                         ScoreCardMemberController.get(new ScoreCardMember(res.getLong("score_card_result.SCORE_CARD_MEMBER_ID"))),
-                        ArenaController.get(new Arena(res.getLong("score_card_result.ARENA_ROUND_HOLE_ID"))),
+                        ArenaHoleController.getHole(new ArenaRoundHole(res.getLong("score_card_result.ARENA_ROUND_HOLE_ID"))),
                         res.getInt("score_card_result.SCORE_VALUE")
-                );*/
-              // scoreCardResults.add(scoreCardResult);
+                );
             }
             log.info("Successfully retrieved: " + scoreCardResults.size());
             return scoreCardResults;
-        } catch (SQLException | ArenaException e){
+        } catch (SQLException | ArenaException | ScoreCardMemberException | ArenaRoundException e){
             throw new ScoreCardResultException(e.getMessage());
         }
 

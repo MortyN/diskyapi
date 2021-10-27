@@ -103,12 +103,13 @@ public class ArenaHoleController {
         }
     }
 
+
     private static void validateCreate(ArenaRoundHole hole) throws ArenaRoundException {
         if(hole.getArenaRound() == null || hole.getArenaRound().getArenaRoundId() == null || hole.getArenaRound().getArenaRoundId() == 0) throw new ArenaRoundException("ArenaRoundId is required");
         if(hole.getParValue() == null || hole.getParValue() == 0 ) throw new ArenaRoundException("ParValue is required");
     }
 
-    private static ArenaRoundHole getHole(ArenaRoundHole hole) throws ArenaRoundException{
+    public static ArenaRoundHole getHole(ArenaRoundHole hole) throws ArenaRoundException{
         Logger log = Logger.getLogger(String.valueOf(ArenaHoleController.class));
 
         Connection conn = DatabaseConnection.getConnection();
