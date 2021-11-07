@@ -44,7 +44,7 @@ public class ArenaController {
         try {
             int psId = 1;
             if (arena.getArenaId() != null && arena.getArenaId() != 0L) update(arena);
-            String sql = "INSERT INTO arena (NAME, DESCRIPTION, ESTABLISHED, CREATED_BY_USER_ID, CREATED_TS, MODIFIED_TS, ACTIVE) VALUES (?,?,?,?,?,?,?)";
+            String sql = "INSERT INTO arena (NAME, DESCRIPTION, ESTABLISHED, CREATED_BY_USER_ID, CREATED_TS, MODIFIED_TS, LONGITUDE, LATITUDE, ACTIVE) VALUES (?,?,?,?,?,?,?,?,?)";
 
             PreparedStatement stmt = conn.prepareStatement(sql);
             arena.setCreatedTs(new Timestamp(System.currentTimeMillis()));
@@ -57,6 +57,8 @@ public class ArenaController {
             stmt.setLong(psId++, arena.getCreatedBy().getUserId());
             stmt.setTimestamp(psId++, arena.getCreatedTs());
             stmt.setTimestamp(psId++, arena.getCreatedTs());
+            stmt.setString(psId++, arena.getLongitude());
+            stmt.setString(psId++, arena.getLatitude());
             stmt.setBoolean(psId++, true);
 
             log.info("Rows affected: " + stmt.executeUpdate());
@@ -72,7 +74,7 @@ public class ArenaController {
         try {
             int psId = 1;
 
-            String sql = "UPDATE arena SET NAME = ?, DESCRIPTION = ?, ESTABLISHED = ?, MODIFIED_TS = ?, ACTIVE = ?";
+            String sql = "UPDATE arena SET NAME = ?, DESCRIPTION = ?, ESTABLISHED = ?, MODIFIED_TS = ?, LATITUDE = ?, LONGITUDE = ?, ACTIVE = ?";
 
             PreparedStatement stmt = conn.prepareStatement(sql);
             arena.setUpdateTs(new Timestamp(System.currentTimeMillis()));
@@ -81,6 +83,8 @@ public class ArenaController {
             stmt.setString(psId++, arena.getDescription());
             stmt.setDate(psId++, arena.getEstablished());
             stmt.setTimestamp(psId++, arena.getUpdateTs());
+            stmt.setString(psId++, arena.getLatitude());
+            stmt.setString(psId++, arena.getLongitude());
             stmt.setBoolean(psId++, arena.isActive());
 
             log.info("Rows affected: " + stmt.executeUpdate());
@@ -169,6 +173,8 @@ public class ArenaController {
                                 user,
                                 res.getTimestamp("ARENA_CREATED_TS"),
                                 res.getTimestamp("ARENA_MODIFIED_TS"),
+                                res.getString("ARENA_LATITUDE"),
+                                res.getString("ARENA_LONGITUDE"),
                                 res.getBoolean("ARENA_ACTIVE"));
 
                         arenaResult.add(arena);
@@ -198,8 +204,10 @@ public class ArenaController {
                                                     res.getString("ARENA_ROUNDS_HOLE_HOLE_NAME"),
                                                     res.getInt("ARENA_ROUNDS_HOLE_PAR_VALUE"),
                                                     res.getBoolean("ARENA_ROUNDS_HOLE_ACTIVE"),
-                                                    res.getString("ARENA_ROUNDS_HOLE_LATITUDE"),
-                                                    res.getString("ARENA_ROUNDS_HOLE_LONGITUDE"),
+                                                    res.getString("ARENA_ROUNDS_HOLE_START_LATITUDE"),
+                                                    res.getString("ARENA_ROUNDS_HOLE_START_LONGITUDE"),
+                                                    res.getString("ARENA_ROUNDS_HOLE_END_LATITUDE"),
+                                                    res.getString("ARENA_ROUNDS_HOLE_END_LONGITUDE"),
                                                     res.getInt("ARENA_ROUNDS_HOLE_ORDER")
                                                 ));
                         }

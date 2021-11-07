@@ -22,7 +22,7 @@ public class Post extends GenericModel{
 
     private Timestamp postedTs;
     private Timestamp updatedTs;
-    private List<Interaction> interactions;
+    private Interactions interactions;
 
     public Post(Long postId){
         this.postId = postId;
@@ -42,12 +42,10 @@ public class Post extends GenericModel{
         return "posts.POST_ID, posts.TEXT_MESSAGE,  posts.USER_ID, posts.POST_TYPE, posts.SCORE_CARD_LINK, posts.POSTED_TS, posts.UPDATED_TS ";
     }
 
-    public void addInteraction(Interaction interaction){
-        if(Utility.nullOrEmpty(this.interactions)) this.interactions = new ArrayList<>();
-        this.interactions.add(interaction);
-    }
+
     @Override
     public Long getPrimaryKey() {
         return this.postId;
     }
+
 }

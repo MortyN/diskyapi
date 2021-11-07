@@ -160,8 +160,10 @@ public class ScoreCardController {
                                 rs.getString("ARENA_ROUNDS_HOLE_HOLE_NAME"),
                                 rs.getInt("ARENA_ROUNDS_HOLE_PAR_VALUE"),
                                 rs.getBoolean("ARENA_ROUNDS_HOLE_ACTIVE"),
-                                rs.getString("ARENA_ROUNDS_HOLE_LATITUDE"),
-                                rs.getString("ARENA_ROUNDS_HOLE_LONGITUDE"),
+                                rs.getString("ARENA_ROUNDS_HOLE_START_LATITUDE"),
+                                rs.getString("ARENA_ROUNDS_HOLE_START_LONGITUDE"),
+                                rs.getString("ARENA_ROUNDS_HOLE_END_LATITUDE"),
+                                rs.getString("ARENA_ROUNDS_HOLE_END_LONGITUDE"),
                                 rs.getInt("ARENA_ROUNDS_HOLE_ORDER")
                             );
                     member.addResult(new ScoreCardResult(

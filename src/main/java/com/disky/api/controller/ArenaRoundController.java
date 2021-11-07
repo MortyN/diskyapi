@@ -221,8 +221,10 @@ public class ArenaRoundController {
                                     res.getString("ARENA_ROUNDS_HOLE_HOLE_NAME"),
                                     res.getInt("ARENA_ROUNDS_HOLE_PAR_VALUE"),
                                     res.getBoolean("ARENA_ROUNDS_HOLE_ACTIVE"),
-                                    res.getString("ARENA_ROUNDS_HOLE_LATITUDE"),
-                                    res.getString("ARENA_ROUNDS_HOLE_LONGITUDE"),
+                                    res.getString("ARENA_ROUNDS_HOLE_START_LATITUDE"),
+                                    res.getString("ARENA_ROUNDS_HOLE_START_LONGITUDE"),
+                                    res.getString("ARENA_ROUNDS_HOLE_END_LATITUDE"),
+                                    res.getString("ARENA_ROUNDS_HOLE_END_LONGITUDE"),
                                     res.getInt("ARENA_ROUNDS_HOLE_ORDER")
                             )
                     );

@@ -38,9 +38,9 @@ public class ArenaHoleController {
                 update(hole);
                 return null;
             }
-            if(hole.getLatitude() != null && hole.getLongitude() != null){
-                fields = " , LATITUDE , LONGITUDE ";
-                marks = ",?,?";
+            if(hole.getStart_latitude() != null && hole.getStart_longitude() != null && hole.getStart_latitude() != null && hole.getStart_longitude() != null){
+                fields = " , START_LATITUDE , START_LONGITUDE, END_LATITUDE , END_LONGITUDE ";
+                marks = ",?,?,?,?";
             }
 
             String sql = "INSERT INTO arena_rounds_hole (ARENA_ROUND_ID, HOLE_NAME, PAR_VALUE, SORT" + fields + ") values (?, ?, ?, ?" + marks + ")";
@@ -53,9 +53,11 @@ public class ArenaHoleController {
             stmt.setInt(psId++, hole.getParValue());
             stmt.setInt(psId++, hole.getOrder());
 
-            if(hole.getLatitude() != null && hole.getLongitude() != null){
-                stmt.setString(psId++, hole.getLatitude());
-                stmt.setString(psId++, hole.getLongitude());
+            if(hole.getStart_latitude() != null && hole.getStart_longitude() != null && hole.getStart_latitude() != null && hole.getStart_longitude() != null){
+                stmt.setString(psId++, hole.getStart_latitude());
+                stmt.setString(psId++, hole.getStart_longitude());
+                stmt.setString(psId++, hole.getEnd_latitude());
+                stmt.setString(psId++, hole.getEnd_longitude());
             }
 
             hole.setArenaRound(ArenaRoundController.get(hole.getArenaRound()));
@@ -75,8 +77,8 @@ public class ArenaHoleController {
         if(hole.getOrder() != null && hole.getHoleName() != null && hole.getOrder().equals(hole.getHoleName().split(" ")[1])){
             fields = ", HOLE_NAME = '?', SORT = ? ";
         }
-        if(hole.getLatitude() != null && hole.getLongitude() != null){
-            fields = " LATITUDE = ?, LONGITUDE = ? ";
+        if(hole.getStart_latitude() != null && hole.getStart_longitude() != null && hole.getStart_latitude() != null && hole.getStart_longitude() != null){
+            fields = " , START_LATITUDE = ? , START_LONGITUDE = ?, END_LATITUDE = ? , END_LONGITUDE = ? ";
         }
         try {
             int psId = 1;
@@ -90,9 +92,11 @@ public class ArenaHoleController {
                 stmt.setString(psId++, "Hole " + hole.getOrder());
                 stmt.setInt(psId++,hole.getOrder());
             }
-            if(hole.getLatitude() != null && hole.getLongitude() != null){
-                stmt.setString(psId++, hole.getLatitude());
-                stmt.setString(psId++, hole.getLongitude());
+            if(hole.getStart_latitude() != null && hole.getStart_longitude() != null && hole.getStart_latitude() != null && hole.getStart_longitude() != null){
+                stmt.setString(psId++, hole.getStart_latitude());
+                stmt.setString(psId++, hole.getStart_longitude());
+                stmt.setString(psId++, hole.getEnd_latitude());
+                stmt.setString(psId++, hole.getEnd_longitude());
             }
 
             stmt.setLong(psId++, hole.getArenaRoundHoleId());
@@ -127,8 +131,10 @@ public class ArenaHoleController {
                     res.getString("arena_round_hole.HOLE_NAME"),
                     res.getInt("arena_round_hole.PAR_VALUE"),
                     res.getBoolean("arena_round_hole.ACTIVE"),
-                    res.getString("arena_round_hole.LATITUDE"),
-                    res.getString("arena_round_hole.LATITUDE"),
+                    res.getString("arena_round_hole.START_LATITUDE"),
+                    res.getString("arena_round_hole.START_LONGITUDE"),
+                    res.getString("arena_round_hole.END_LATITUDE"),
+                    res.getString("arena_round_hole.END_LONGITUDE"),
                     res.getInt("arena_round_hole.SORT ARENA_ROUNDS_HOLE_ORDER")
             );
             return arenaRoundHole;

@@ -17,6 +17,8 @@ public class Arena extends GenericModel{
     private User createdBy;
     private Timestamp createdTs;
     private Timestamp updateTs;
+    private String latitude;
+    private String longitude;
     private List<ArenaRound> rounds;
     private boolean active;
 
@@ -24,7 +26,7 @@ public class Arena extends GenericModel{
         this.arenaId = arenaId;
     }
 
-    public Arena(Long arenaId, String arenaName, String description, Date established, User createdBy, Timestamp createdTs, Timestamp updateTs, boolean active) {
+    public Arena(Long arenaId, String arenaName, String description, Date established, User createdBy, Timestamp createdTs, Timestamp updateTs, String latitude, String longitude, boolean active) {
         this.arenaId = arenaId;
         this.arenaName = arenaName;
         this.description = description;
@@ -32,6 +34,8 @@ public class Arena extends GenericModel{
         this.createdBy = createdBy;
         this.createdTs = createdTs;
         this.updateTs = updateTs;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.active = active;
     }
 
@@ -49,6 +53,7 @@ public class Arena extends GenericModel{
     public static String getColumns(){
         return " arena.ARENA_ID ARENA_ARENA_ID, arena.NAME ARENA_NAME, arena.DESCRIPTION ARENA_DESCRIPTION," +
                 " arena.ESTABLISHED ARENA_ESTABLISHED, arena.CREATED_BY_USER_ID ARENA_CREATED_BY_USER_ID, " +
-                "arena.CREATED_TS ARENA_CREATED_TS, arena.MODIFIED_TS ARENA_MODIFIED_TS, arena.ACTIVE ARENA_ACTIVE ";
+                "arena.CREATED_TS ARENA_CREATED_TS, arena.MODIFIED_TS ARENA_MODIFIED_TS," +
+                "arena.LATITUDE ARENA_LATITUDE, arena.LONGITUDE ARENA_LONGITUDE, arena.ACTIVE ARENA_ACTIVE ";
     }
 }

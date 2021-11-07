@@ -3,10 +3,7 @@ package com.disky.api.controller;
 import com.disky.api.Exceptions.GetUserException;
 import com.disky.api.Exceptions.PostControllerException;
 import com.disky.api.filter.PostFilter;
-import com.disky.api.model.Interaction;
-import com.disky.api.model.Post;
-import com.disky.api.model.ScoreCard;
-import com.disky.api.model.User;
+import com.disky.api.model.*;
 import com.disky.api.util.DatabaseConnection;
 import com.disky.api.util.Utility;
 
@@ -80,8 +77,12 @@ public class PostController {
                 );
 
                 postResults.add(post);
-
-                post.setInteractions(getInteractions(post));
+                if(filter.isGetFromConnections()){
+                    post.setInteractions(getInteractions(post, filter.getUser()));
+                }
+                else{
+                    post.setInteractions(getInteractions(post));
+                }
             }
             log.info("Successfully retrieved: " + postResults.size() + " posts.");
             return postResults;
@@ -90,8 +91,8 @@ public class PostController {
         }
     }
 
-    private static List<Interaction> getInteractions(Post post) throws PostControllerException {
-        List<Interaction> interactions = new ArrayList<>();
+    private static Interactions getInteractions(Post post) throws PostControllerException {
+        List<Interaction> interaction = new ArrayList<>();
         String sql = "SELECT * FROM post_interactions WHERE POST_ID = ? ";
         Connection conn = DatabaseConnection.getConnection();
         try {
@@ -100,12 +101,42 @@ public class PostController {
             ResultSet res = stmt.executeQuery();
 
             while(res.next()){
-                interactions.add(new Interaction(
+                interaction.add(new Interaction(
                         new Post(res.getLong("POST_ID")),
                         new User(res.getLong("USER_ID")),
                         1));
             }
-        return interactions;
+        return new Interactions(null, interaction);
+        } catch (SQLException e) {
+            throw new PostControllerException(e.getMessage());
+        }
+
+    }
+
+    private static Interactions getInteractions(Post post, User loggedInUser) throws PostControllerException {
+        List<Interaction> interaction = new ArrayList<>();
+        String sql = "SELECT * FROM post_interactions WHERE POST_ID = ? ";
+        Connection conn = DatabaseConnection.getConnection();
+        try {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setLong(1, post.getPostId());
+            ResultSet res = stmt.executeQuery();
+
+            while(res.next()){
+                interaction.add(new Interaction(
+                        new Post(res.getLong("POST_ID")),
+                        new User(res.getLong("USER_ID")),
+                        1));
+            }
+
+            Boolean isLikedByUser = false;
+            for(Interaction i : interaction){
+                if(i.getUser().getUserId() == loggedInUser.getUserId()){
+                    isLikedByUser = true;
+                }
+            }
+            return new Interactions(isLikedByUser, interaction);
+
         } catch (SQLException e) {
             throw new PostControllerException(e.getMessage());
         }
@@ -245,6 +276,7 @@ public class PostController {
     }
 
     private static Interaction insertInteract(Interaction interaction) throws SQLException {
+        Logger log = Logger.getLogger(String.valueOf(PostController.class));
         Connection conn = DatabaseConnection.getConnection();
         String sql = "INSERT INTO post_interactions (POST_ID, USER_ID, TYPE) values (?,?,?)";
 
@@ -253,11 +285,13 @@ public class PostController {
         stmt.setLong(2, interaction.getUser().getUserId());
         stmt.setInt(3, 1);
         stmt.executeUpdate();
+        log.info("One interaction inserted");
 
         return interaction;
     }
 
     private static Interaction deleteInteract(Interaction interaction) throws PostControllerException {
+        Logger log = Logger.getLogger(String.valueOf(PostController.class));
         String sql = "DELETE FROM post_interactions WHERE POST_ID = ? AND USER_ID = ? ;";
         Connection conn = DatabaseConnection.getConnection();
         try {
@@ -265,7 +299,7 @@ public class PostController {
             stmt.setLong(1, interaction.getPost().getPostId());
             stmt.setLong(2, interaction.getUser().getUserId());
             stmt.executeUpdate();
-
+            log.info("One interaction deleted");
         } catch (SQLException e) {
             throw new PostControllerException(e.getMessage());
         }
