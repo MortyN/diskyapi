@@ -1,14 +1,14 @@
 package com.disky.api.model;
 
-import com.disky.api.util.Parse;
+import com.disky.api.util.Utility;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import lombok.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class User {
+public class User extends GenericModel{
     private Long userId;
     private String userName;
     private String firstName;
@@ -34,12 +34,17 @@ public class User {
     }
 
     public void addUserLink(UserLink link){
-        if(!Parse.nullOrEmpty(this.userLinks)) this.userLinks = new ArrayList<>();
+        if(!Utility.nullOrEmpty(this.userLinks)) this.userLinks = new ArrayList<>();
         this.userLinks.add(link);
     }
 
     public static String getColumns(){
         return "users.USER_ID, users.USERNAME, users.FIRST_NAME, " +
                 "users.LAST_NAME, users.PHONE_NUMBER, users.PASSWORD, users.IMG_KEY ";
+    }
+
+    @Override
+    public Long getPrimaryKey() {
+        return this.userId;
     }
 }

@@ -3,11 +3,12 @@ package com.disky.api.controller;
 import com.disky.api.Exceptions.GetUserException;
 import com.disky.api.Exceptions.PostControllerException;
 import com.disky.api.filter.PostFilter;
+import com.disky.api.model.Interaction;
 import com.disky.api.model.Post;
 import com.disky.api.model.ScoreCard;
 import com.disky.api.model.User;
 import com.disky.api.util.DatabaseConnection;
-import com.disky.api.util.Parse;
+import com.disky.api.util.Utility;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -40,10 +41,10 @@ public class PostController {
 
             if(filter.isGetFromConnections() && filter.getUser() != null && filter.getUser().getUserId() != 0L){
                 userIds = getUserRelations(filter.getUser());
-                where += " AND posts.USER_ID in(" + Parse.listAsQuestionMarks(userIds)+ ") ";
+                where += " AND posts.USER_ID in(" + Utility.listAsQuestionMarks(userIds)+ ") ";
             }
 
-            String sql = " SELECT " + Post.getColumns() + " FROM posts " + where + " ORDER BY POSTED_TS; ";
+            String sql = " SELECT " + Post.getColumns() + " FROM posts " + where + " ORDER BY POSTED_TS desc; ";
             PreparedStatement stmt = conn.prepareStatement(sql);
 
             if (filter.getUser() != null && filter.getUser().getUserId() != 0L && !filter.isGetFromConnections()) {
@@ -79,12 +80,36 @@ public class PostController {
                 );
 
                 postResults.add(post);
+
+                post.setInteractions(getInteractions(post));
             }
-            log.info("Successfully retireved: " + postResults.size() + " posts.");
+            log.info("Successfully retrieved: " + postResults.size() + " posts.");
             return postResults;
         } catch (SQLException  | GetUserException e) {
             throw new PostControllerException(e.getMessage());
         }
+    }
+
+    private static List<Interaction> getInteractions(Post post) throws PostControllerException {
+        List<Interaction> interactions = new ArrayList<>();
+        String sql = "SELECT * FROM post_interactions WHERE POST_ID = ? ";
+        Connection conn = DatabaseConnection.getConnection();
+        try {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setLong(1, post.getPostId());
+            ResultSet res = stmt.executeQuery();
+
+            while(res.next()){
+                interactions.add(new Interaction(
+                        new Post(res.getLong("POST_ID")),
+                        new User(res.getLong("USER_ID")),
+                        1));
+            }
+        return interactions;
+        } catch (SQLException e) {
+            throw new PostControllerException(e.getMessage());
+        }
+
     }
 
     public static void delete(Post post) throws PostControllerException {
@@ -152,7 +177,6 @@ public class PostController {
             throw new PostControllerException("postType is required!");
     }
 
-    //TODO: Do this
     private static int update(Post post) throws PostControllerException {
         if(post.getPostId() == null || post.getMessage() == null) throw new PostControllerException("PostId and post message is required!");
         Logger log = Logger.getLogger(String.valueOf(PostController.class));
@@ -180,7 +204,7 @@ public class PostController {
     private static List<Long> getUserRelations(User user) throws PostControllerException {
         List<Long> userIds = new ArrayList<>();
         Connection conn = DatabaseConnection.getConnection();
-        //TODO: Dont get user id if deactivated
+
         String sqlOne = "SELECT user_links.USER_ID_LINK1 AS userId FROM user_links WHERE user_links.USER_ID_LINK2 = ?";
         String sqlTwo = "SELECT user_links.USER_ID_LINK2 AS userId FROM user_links WHERE user_links.USER_ID_LINK1 = ?";
 
@@ -206,5 +230,61 @@ public class PostController {
             throw new PostControllerException(e.getMessage());
         }
         return userIds;
+    }
+
+    public static Interaction interact(Interaction interaction) throws PostControllerException, SQLException {
+        int psId = 1;
+        Logger log = Logger.getLogger(String.valueOf(PostController.class));
+        Connection conn = DatabaseConnection.getConnection();
+        if(alreadyInteracted(interaction)) {
+            return deleteInteract(interaction);
+        } else {
+           return insertInteract(interaction);
+        }
+
+    }
+
+    private static Interaction insertInteract(Interaction interaction) throws SQLException {
+        Connection conn = DatabaseConnection.getConnection();
+        String sql = "INSERT INTO post_interactions (POST_ID, USER_ID, TYPE) values (?,?,?)";
+
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setLong(1, interaction.getPost().getPostId());
+        stmt.setLong(2, interaction.getUser().getUserId());
+        stmt.setInt(3, 1);
+        stmt.executeUpdate();
+
+        return interaction;
+    }
+
+    private static Interaction deleteInteract(Interaction interaction) throws PostControllerException {
+        String sql = "DELETE FROM post_interactions WHERE POST_ID = ? AND USER_ID = ? ;";
+        Connection conn = DatabaseConnection.getConnection();
+        try {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setLong(1, interaction.getPost().getPostId());
+            stmt.setLong(2, interaction.getUser().getUserId());
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new PostControllerException(e.getMessage());
+        }
+        return null;
+    }
+
+    private static boolean alreadyInteracted(Interaction interaction) throws PostControllerException {
+        String sql = "SELECT * FROM post_interactions WHERE POST_ID = ? AND USER_ID = ? ";
+        Connection conn = DatabaseConnection.getConnection();
+        try {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setLong(1, interaction.getPost().getPostId());
+            stmt.setLong(2, interaction.getUser().getUserId());
+            ResultSet res1 = stmt.executeQuery();
+
+            return res1.next();
+
+        } catch (SQLException e) {
+            throw new PostControllerException(e.getMessage());
+        }
     }
 }

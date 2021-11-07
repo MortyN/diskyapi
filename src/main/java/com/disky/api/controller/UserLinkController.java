@@ -2,12 +2,11 @@ package com.disky.api.controller;
 
 import com.disky.api.Exceptions.GetUserException;
 import com.disky.api.Exceptions.UserLinkException;
-import com.disky.api.filter.UserFilter;
 import com.disky.api.filter.UserLinkFilter;
 import com.disky.api.model.User;
 import com.disky.api.model.UserLink;
 import com.disky.api.util.DatabaseConnection;
-import com.disky.api.util.Parse;
+import com.disky.api.util.Utility;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -154,7 +153,7 @@ public class UserLinkController {
             while (res.next()) {
                 User user_id_link1 = new User(res.getLong("USER_ID_LINK1")),
                         user_id_link2 = new User(res.getLong("USER_ID_LINK2"));
-                if (Parse.nullOrEmpty(filter.getUser().getUserLinks())) {
+                if (Utility.nullOrEmpty(filter.getUser().getUserLinks())) {
                     user_id_link1 = UserController.getOne(new User(res.getLong("USER_ID_LINK1")));
                     user_id_link2 = UserController.getOne(new User(res.getLong("USER_ID_LINK2")));
                 }

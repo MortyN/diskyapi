@@ -7,7 +7,6 @@ import com.disky.api.model.User;
 import com.disky.api.model.UserSetting;
 import com.disky.api.model.UserSettingMatrix;
 import com.disky.api.util.DatabaseConnection;
-import com.disky.api.util.Parse;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

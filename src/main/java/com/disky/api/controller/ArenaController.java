@@ -2,17 +2,15 @@ package com.disky.api.controller;
 
 import com.disky.api.Exceptions.ArenaException;
 import com.disky.api.Exceptions.GetUserException;
-import com.disky.api.Exceptions.UserLinkException;
 import com.disky.api.filter.ArenaFilter;
 import com.disky.api.model.*;
 import com.disky.api.util.DatabaseConnection;
-import com.disky.api.util.Parse;
+import com.disky.api.util.Utility;
 
 import java.sql.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -110,21 +108,21 @@ public class ArenaController {
         try {
             String where = "WHERE arena.ACTIVE = ?  ";
 
-            if (!Parse.nullOrEmpty(filter.getArenaIds())) {
-                where += " AND arena.ARENA_ID in ( " + Parse.listAsQuestionMarks(filter.getArenaIds()) + ")";
+            if (!Utility.nullOrEmpty(filter.getArenaIds())) {
+                where += " AND arena.ARENA_ID in ( " + Utility.listAsQuestionMarks(filter.getArenaIds()) + ")";
             }
-            if (!Parse.nullOrEmpty(filter.getNames())) {
-                where += " AND arena.NAME in ( " + Parse.listAsQuestionMarks(filter.getNames()) + ")";
+            if (!Utility.nullOrEmpty(filter.getNames())) {
+                where += " AND arena.NAME in ( " + Utility.listAsQuestionMarks(filter.getNames()) + ")";
             }
 
-            if (!Parse.nullOrEmpty(filter.getCreatedBy())) {
-                where += " AND arena.CREATED_BY_USER_ID in ( " + Parse.listAsQuestionMarks(filter.getCreatedBy()) + ")";
+            if (!Utility.nullOrEmpty(filter.getCreatedBy())) {
+                where += " AND arena.CREATED_BY_USER_ID in ( " + Utility.listAsQuestionMarks(filter.getCreatedBy()) + ")";
             }
 
             if(filter.isGetArenaRounds()){
                 leftJoin += " LEFT JOIN arena_rounds USING(ARENA_ID) LEFT JOIN arena_rounds_hole ON arena_rounds.ARENA_ROUND_ID = arena_rounds_hole.ARENA_ROUND_ID ";
                 fields += ", " + ArenaRound.getColumns() + ", " + ArenaRoundHole.getColumns();
-                where += " ORDER BY arena.ARENA_ID, arena_rounds.ARENA_ROUND_ID, arena_rounds_hole.ORDER ";
+                where += " ORDER BY arena.ARENA_ID, arena_rounds.ARENA_ROUND_ID, arena_rounds_hole.SORT ";
             }
 
             String sql = "SELECT " + fields + " FROM arena " + leftJoin +  where;
@@ -133,18 +131,18 @@ public class ArenaController {
 
             stmt.setBoolean(psId++, filter.isActive());
 
-            if (!Parse.nullOrEmpty(filter.getArenaIds())) {
+            if (!Utility.nullOrEmpty(filter.getArenaIds())) {
                 for (Long id : filter.getArenaIds()) {
                     stmt.setLong(psId++, id);
                 }
             }
-                if (!Parse.nullOrEmpty(filter.getNames())) {
+                if (!Utility.nullOrEmpty(filter.getNames())) {
                     for (String name : filter.getNames()) {
                         stmt.setString(psId++, name);
                     }
                 }
 
-                if (!Parse.nullOrEmpty(filter.getCreatedBy())) {
+                if (!Utility.nullOrEmpty(filter.getCreatedBy())) {
                     for (Long createdById : filter.getCreatedBy()) {
                         stmt.setLong(psId++, createdById);
                     }
@@ -178,7 +176,7 @@ public class ArenaController {
                     if(filter.isGetArenaRounds() && res.getLong("ARENA_ROUNDS_ARENA_ROUND_ID") != 0){
                         Long arenaRoundId = res.getLong("ARENA_ROUNDS_ARENA_ROUND_ID");
 
-                        if(Parse.nullOrEmpty(arena.getRounds()) || (!arena.getRounds().stream().anyMatch(o -> o.getArenaRoundId().equals(arenaRoundId)))) {
+                        if(Utility.nullOrEmpty(arena.getRounds()) || (!arena.getRounds().stream().anyMatch(o -> o.getArenaRoundId().equals(arenaRoundId)))) {
                             arenaRound = new ArenaRound(
                                             arenaRoundId,
                                             new Arena(arena.getArenaId()),
@@ -193,7 +191,7 @@ public class ArenaController {
                             arena.addRounds(arenaRound);
                         }
                         Long arenaRoundHoleId = res.getLong("ARENA_ROUNDS_HOLE_ARENA_ROUND_HOLE_ID");
-                        if(Parse.nullOrEmpty(arenaRound.getHoles()) || (!arenaRound.getHoles().stream().anyMatch(o -> o.getArenaRoundHoleId().equals(arenaRoundHoleId)))){
+                        if(Utility.nullOrEmpty(arenaRound.getHoles()) || (!arenaRound.getHoles().stream().anyMatch(o -> o.getArenaRoundHoleId().equals(arenaRoundHoleId)))){
                             arenaRound.addHoles(new ArenaRoundHole(
                                                     arenaRoundHoleId,
                                                     new ArenaRound(arenaRoundId),

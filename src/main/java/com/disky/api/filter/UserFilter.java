@@ -1,6 +1,6 @@
 package com.disky.api.filter;
 
-import com.disky.api.util.Parse;
+import com.disky.api.util.Utility;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -16,9 +16,8 @@ public class UserFilter {
     private boolean getUserLinks = false;
 
     public UserFilter addUserIds(Long id){
-        if(Parse.nullOrEmpty(this.userIds)) this.userIds = new ArrayList<>();
+        if(Utility.nullOrEmpty(this.userIds)) this.userIds = new ArrayList<>();
         this.userIds.add(id);
         return this;
     }
-
 }

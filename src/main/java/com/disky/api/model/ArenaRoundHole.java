@@ -3,7 +3,7 @@ package com.disky.api.model;
 import lombok.Data;
 
 @Data
-public class ArenaRoundHole {
+public class ArenaRoundHole extends GenericModel{
     private Long arenaRoundHoleId;
     private ArenaRound arenaRound;
     private String holeName;
@@ -37,5 +37,10 @@ public class ArenaRoundHole {
                 " arena_rounds_hole.LATITUDE ARENA_ROUNDS_HOLE_LATITUDE, " +
                 " arena_rounds_hole.LONGITUDE ARENA_ROUNDS_HOLE_LONGITUDE, " +
                 " arena_rounds_hole.SORT ARENA_ROUNDS_HOLE_ORDER ";
+    }
+
+    @Override
+    public Long getPrimaryKey() {
+        return this.arenaRoundHoleId;
     }
 }

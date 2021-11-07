@@ -13,5 +13,6 @@ public class ScoreCardFilter {
     private Arena arena;
     private User member;
     private boolean getMembers = true;
+    private boolean getResult = true;
 }
 

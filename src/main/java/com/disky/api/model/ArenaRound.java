@@ -1,15 +1,14 @@
 package com.disky.api.model;
 
-import com.disky.api.util.Parse;
+import com.disky.api.util.Utility;
 import lombok.Data;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Data
-public class ArenaRound {
+public class ArenaRound extends GenericModel{
     private Long arenaRoundId;
 
     private Arena arena;
@@ -39,7 +38,7 @@ public class ArenaRound {
     }
 
     public ArenaRound addHoles(ArenaRoundHole hole){
-        if(Parse.nullOrEmpty(this.holes)) this.holes = new ArrayList<>();
+        if(Utility.nullOrEmpty(this.holes)) this.holes = new ArrayList<>();
         this.holes.add(hole);
         return this;
     }
@@ -49,5 +48,10 @@ public class ArenaRound {
                 " arena_rounds.HOLE_AMOUNT ARENA_ROUNDS_HOLE_AMOUNT, arena_rounds.CREATED_BY_USER_ID ARENA_ROUNDS_CREATED_BY_USER_ID," +
                 " arena_rounds.CREATED_TS ARENA_ROUNDS_CREATED_TS, arena_rounds.MODIFIED_TS ARENA_ROUNDS_MODIFIED_TS," +
                 " arena_rounds.ACTIVE ARENA_ROUNDS_ACTIVE ";
+    }
+
+    @Override
+    public Long getPrimaryKey() {
+        return this.arenaRoundId;
     }
 }

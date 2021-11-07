@@ -7,7 +7,7 @@ import com.disky.api.filter.UserFilter;
 import com.disky.api.filter.UserLinkFilter;
 import com.disky.api.model.User;
 import com.disky.api.util.DatabaseConnection;
-import com.disky.api.util.Parse;
+import com.disky.api.util.Utility;
 import com.disky.api.util.S3Util;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -114,8 +114,12 @@ public class UserController {
            log.info("Rows affected: " + stmt.executeUpdate());
 
            user.setImgKey(fileName);
-       } catch (SQLException | UserImageUploadException e) {
+       } catch (SQLException  e) {
+           log.warning("Failed to update image in DB, rollback upload.");
            S3Util.s3DeletePhoto(fileName);
+           throw new GetUserException(e.getMessage());
+       }
+       catch(UserImageUploadException e){
            throw new GetUserException(e.getMessage());
        }
     }
@@ -130,7 +134,7 @@ public class UserController {
     public static User getOne(UserFilter filter) throws GetUserException {
         List<User> users = get(filter);
 
-        if(Parse.nullOrEmpty(users))
+        if(Utility.nullOrEmpty(users))
             return null;
         else if(users.size() > 1)
             throw new GetUserException("Expected one user, got " + users.size());
@@ -147,54 +151,54 @@ public class UserController {
        try {
            String where = "WHERE 1=1 ";
 
-           if (!Parse.nullOrEmpty(filter.getUserIds())) {
-               where += " AND users.USER_ID in ( " + Parse.listAsQuestionMarks(filter.getUserIds()) + ")";
+           if (!Utility.nullOrEmpty(filter.getUserIds())) {
+               where += " AND users.USER_ID in ( " + Utility.listAsQuestionMarks(filter.getUserIds()) + ")";
            }
 
-           if (!Parse.nullOrEmpty(filter.getUserNames())) {
-               where += " AND users.USERNAME in ( " + Parse.listAsQuestionMarks(filter.getUserNames()) + ")";
+           if (!Utility.nullOrEmpty(filter.getUserNames())) {
+               where += " AND users.USERNAME in ( " + Utility.listAsQuestionMarks(filter.getUserNames()) + ")";
            }
 
-           if (!Parse.nullOrEmpty(filter.getFirstNames())) {
-               where += " AND users.FIRST_NAME in ( " + Parse.listAsQuestionMarks(filter.getFirstNames()) + ")";
+           if (!Utility.nullOrEmpty(filter.getFirstNames())) {
+               where += " AND users.FIRST_NAME in ( " + Utility.listAsQuestionMarks(filter.getFirstNames()) + ")";
            }
 
-           if (!Parse.nullOrEmpty(filter.getLastNames())) {
-               where += " AND users.LAST_NAME in ( " + Parse.listAsQuestionMarks(filter.getLastNames()) + ")";
+           if (!Utility.nullOrEmpty(filter.getLastNames())) {
+               where += " AND users.LAST_NAME in ( " + Utility.listAsQuestionMarks(filter.getLastNames()) + ")";
            }
 
-           if (!Parse.nullOrEmpty(filter.getPhoneNumbers())) {
-               where += " AND users.PHONE_NUMBER in ( " + Parse.listAsQuestionMarks(filter.getPhoneNumbers()) + ")";
+           if (!Utility.nullOrEmpty(filter.getPhoneNumbers())) {
+               where += " AND users.PHONE_NUMBER in ( " + Utility.listAsQuestionMarks(filter.getPhoneNumbers()) + ")";
            }
            String sql = "SELECT " + User.getColumns() + " FROM users " + where;
            PreparedStatement stmt = conn.prepareStatement(sql);
            int psId = 1;
 
-           if (!Parse.nullOrEmpty(filter.getUserIds())) {
+           if (!Utility.nullOrEmpty(filter.getUserIds())) {
                for (Long id : filter.getUserIds()) {
                    stmt.setLong(psId++, id);
                }
            }
 
-           if (!Parse.nullOrEmpty(filter.getUserNames())) {
+           if (!Utility.nullOrEmpty(filter.getUserNames())) {
                for (String userName : filter.getUserNames()) {
                    stmt.setString(psId++, userName);
                }
            }
 
-           if (!Parse.nullOrEmpty(filter.getFirstNames())) {
+           if (!Utility.nullOrEmpty(filter.getFirstNames())) {
                for (String firstName : filter.getFirstNames()) {
                    stmt.setString(psId++, firstName);
                }
            }
 
-           if (!Parse.nullOrEmpty(filter.getLastNames())) {
+           if (!Utility.nullOrEmpty(filter.getLastNames())) {
                for (String lastName : filter.getLastNames()) {
                    stmt.setString(psId++, lastName);
                }
            }
 
-           if (!Parse.nullOrEmpty(filter.getPhoneNumbers())) {
+           if (!Utility.nullOrEmpty(filter.getPhoneNumbers())) {
                for (String number : filter.getPhoneNumbers()) {
                    stmt.setString(psId++, number);
                }
@@ -222,7 +226,6 @@ public class UserController {
                    user.setUserLinks(UserLinkController.getUserLinks(userLinkFilter));
                }
            }
-           log.info("Successfully retrieved: " + userResult.size() + " users.");
            return userResult;
        } catch (SQLException | UserLinkException e) {
            throw new GetUserException("Unable to get user");
@@ -276,7 +279,6 @@ public class UserController {
                );
                userResult.add(user);
            }
-           log.info("Successfully retireved: " + userResult.size() + " users.");
            return userResult;
 
        } catch (SQLException e) {

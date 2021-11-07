@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.NonNull;
 
 @Data
-public class UserSetting {
+public class UserSetting extends GenericModel{
     private Long settingId;
     private String settingName;
     private String settingDescription;
@@ -21,5 +21,11 @@ public class UserSetting {
 
     public static String getColumns(){
         return "user_settings.SETTING_NAME, user_settings.SETTING_DESCRIPTION";
+    }
+
+
+    @Override
+    public Long getPrimaryKey() {
+        return this.settingId;
     }
 }

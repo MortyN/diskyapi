@@ -9,7 +9,7 @@ import com.disky.api.model.ArenaRound;
 import com.disky.api.model.ArenaRoundHole;
 import com.disky.api.model.User;
 import com.disky.api.util.DatabaseConnection;
-import com.disky.api.util.Parse;
+import com.disky.api.util.Utility;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class ArenaRoundController {
                  round.setArenaRoundId(rs.getLong(1));
              }
 
-             if(!Parse.nullOrEmpty(round.getHoles())){
+             if(!Utility.nullOrEmpty(round.getHoles())){
                  round.setHoles(ArenaHoleController.create(round.getHoles(),round, conn));
              }
              conn.commit();
@@ -141,8 +141,8 @@ public class ArenaRoundController {
             if(filter.getArenaRoundId() != null && filter.getArenaRoundId() != 0){
                 where += " AND arena_rounds.ARENA_ROUND_ID = ? ";
             }
-            if (!Parse.nullOrEmpty(filter.getHoleAmounts())) {
-                where += " AND arena_rounds.HOLE_AMOUNT in ( " + Parse.listAsQuestionMarks(filter.getHoleAmounts()) + ")";
+            if (!Utility.nullOrEmpty(filter.getHoleAmounts())) {
+                where += " AND arena_rounds.HOLE_AMOUNT in ( " + Utility.listAsQuestionMarks(filter.getHoleAmounts()) + ")";
             }
 
             if (filter.getConnectedToArenaId() != null && filter.getConnectedToArenaId().getArenaId() != 0) {
@@ -171,7 +171,7 @@ public class ArenaRoundController {
             if(filter.getArenaRoundId() != null && filter.getArenaRoundId() != 0){
                 stmt.setLong(psId++, filter.getArenaRoundId());
             }
-            if (!Parse.nullOrEmpty(filter.getHoleAmounts())) {
+            if (!Utility.nullOrEmpty(filter.getHoleAmounts())) {
                for(Integer holeAmount : filter.getHoleAmounts()){
                    stmt.setInt(psId++, holeAmount);
                }
