@@ -77,12 +77,12 @@ public class PostController {
                 );
 
                 postResults.add(post);
-                if(filter.isGetFromConnections()){
+                if(filter.getUser() != null){
                     post.setInteractions(getInteractions(post, filter.getUser()));
+                }else{
+                    post.setInteractions(new Interactions(null));
                 }
-                else{
-                    post.setInteractions(getInteractions(post));
-                }
+
             }
             log.info("Successfully retrieved: " + postResults.size() + " posts.");
             return postResults;
