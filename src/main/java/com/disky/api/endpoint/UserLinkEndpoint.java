@@ -6,6 +6,7 @@ import com.disky.api.controller.UserController;
 import com.disky.api.controller.UserLinkController;
 import com.disky.api.filter.UserFilter;
 import com.disky.api.filter.UserLinkFilter;
+import com.disky.api.model.ToggleUserWrapper;
 import com.disky.api.model.User;
 import com.disky.api.model.UserLink;
 import com.google.gson.Gson;
@@ -19,10 +20,9 @@ import java.util.List;
 @CrossOrigin
 public class UserLinkEndpoint {
 
-    @PostMapping(path="/create")
-    public UserLink create(@RequestBody(required = true) UserLink userLink) throws UserLinkException {
-        UserLinkController.create(userLink);
-        return userLink;
+    @PostMapping(path="/toggle")
+    public UserLink create(@RequestBody(required = true) ToggleUserWrapper toggleUserWrapper) throws UserLinkException {
+        return UserLinkController.toggleFriend(toggleUserWrapper.getSenderUser(), toggleUserWrapper.getRecipientUser());
     }
 
     @PostMapping("/update")
@@ -41,3 +41,6 @@ public class UserLinkEndpoint {
         return UserLinkController.getUserLinks(userLinkFilter);
     }
 }
+
+
+

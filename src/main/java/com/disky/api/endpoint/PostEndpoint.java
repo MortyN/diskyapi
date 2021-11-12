@@ -31,8 +31,8 @@ public class PostEndpoint {
        return PostController.interact(interaction);
     }
 
-    @DeleteMapping()
-    public static void delete(@RequestParam(required = true)  Long postId) throws PostControllerException {
+    @DeleteMapping(value = "/delete/{postId}")
+    public static void delete(@PathVariable(required = true)  Long postId) throws PostControllerException {
         PostController.delete(new Post(postId));
     }
 

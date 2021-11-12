@@ -2,7 +2,9 @@ package com.disky.api.controller;
 
 import com.disky.api.Exceptions.GetUserException;
 import com.disky.api.Exceptions.PostControllerException;
+import com.disky.api.Exceptions.UserLinkException;
 import com.disky.api.filter.PostFilter;
+import com.disky.api.filter.UserLinkFilter;
 import com.disky.api.model.*;
 import com.disky.api.util.DatabaseConnection;
 import com.disky.api.util.Utility;
@@ -79,6 +81,9 @@ public class PostController {
                 postResults.add(post);
                 if(filter.getUser() != null){
                     post.setInteractions(getInteractions(post, filter.getUser()));
+                    UserLinkFilter userLinkFilter = new UserLinkFilter();
+                    userLinkFilter.setUser(filter.getUser());
+                    post.getUser().setUserLinks(UserLinkController.getUserLinks(userLinkFilter));
                 }else{
                     post.setInteractions(new Interactions(null));
                 }
@@ -86,7 +91,7 @@ public class PostController {
             }
             log.info("Successfully retrieved: " + postResults.size() + " posts.");
             return postResults;
-        } catch (SQLException  | GetUserException e) {
+        } catch (SQLException | GetUserException | UserLinkException e) {
             throw new PostControllerException(e.getMessage());
         }
     }
@@ -148,11 +153,16 @@ public class PostController {
         Logger log = Logger.getLogger(String.valueOf(PostController.class));
         Connection conn = DatabaseConnection.getConnection();
         try {
-            String sql = "DELETE FROM posts WHERE POST_ID = ?";
+            String sql = "DELETE FROM post_interactions where POST_ID = ? ";
+            String sql2 = "DELETE FROM posts WHERE POST_ID = ?";
+
             PreparedStatement stmt = conn.prepareStatement(sql);
+            PreparedStatement stmt2 = conn.prepareStatement(sql2);
 
             stmt.setLong(1, post.getPostId());
+            stmt2.setLong(1, post.getPostId());
             stmt.executeUpdate();
+            stmt2.executeUpdate();
 
         } catch (SQLException e) {
             throw new PostControllerException(e.getMessage());

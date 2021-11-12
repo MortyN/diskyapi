@@ -14,6 +14,32 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class UserLinkController {
+
+    public static UserLink toggleFriend(User senderUser, User recipientUser) throws UserLinkException {
+        Logger log = Logger.getLogger(String.valueOf(UserLinkController.class));
+        UserLinkFilter filter = new UserLinkFilter();
+        filter.setUser(senderUser);
+        List<UserLink> existingConnections = getUserLinks(filter);
+
+        UserLink existingConnection = null;
+        if(Utility.nullOrEmpty(existingConnections)){
+            log.info("creating pending connection");
+            UserLink newConnection = new UserLink(senderUser, recipientUser,UserLink.USER_LINK_TYPE_PENDING, null);
+            create(newConnection);
+            return newConnection;
+        }
+        else{
+            for(UserLink link : existingConnections){
+                if((link.getUserLink1().getUserId().equals(senderUser.getUserId()) && link.getUserLink2().getUserId().equals(recipientUser.getUserId()))
+                 || (link.getUserLink2().getUserId().equals(senderUser.getUserId()) && link.getUserLink1().getUserId().equals(recipientUser.getUserId()))){
+                    existingConnection = link;
+                }
+            }
+            delete(existingConnection);
+            log.info("Deleting existing connection");
+            return null;
+        }
+    }
     public static void create(UserLink link) throws UserLinkException {
         Logger log = Logger.getLogger(String.valueOf(UserLinkController.class));
       try {
@@ -21,12 +47,11 @@ public class UserLinkController {
           Connection conn = DatabaseConnection.getConnection();
           int psId = 1;
 
-          String sql = "INSERT INTO user_links (USER_ID_LINK1, USER_ID_LINK2, STATUS, TYPE ) values (?,?,?,?)";
+          String sql = "INSERT INTO user_links (USER_ID_LINK1, USER_ID_LINK2, TYPE ) values (?,?,?)";
 
-          PreparedStatement stmt = conn.prepareStatement(sql);
+          PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
           stmt.setLong(psId++, link.getUserLink1().getUserId());
           stmt.setLong(psId++, link.getUserLink2().getUserId());
-          stmt.setInt(psId++, UserLink.USER_LINK_STATUS_PENDING);
           stmt.setInt(psId++, link.getType());
 
           link.setUserLink1(UserController.getOne(link.getUserLink1()));
@@ -48,9 +73,9 @@ public class UserLinkController {
             Connection conn = DatabaseConnection.getConnection();
 
             int psId = 1;
-            String sql = "UPDATE user_links SET STATUS = ? WHERE USER_ID_LINK1 = ? and USER_ID_LINK2 = ?";
+            String sql = "UPDATE user_links SET TYPE = ? WHERE USER_ID_LINK1 = ? and USER_ID_LINK2 = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setInt(psId++, link.getStatus());
+            stmt.setLong(psId++, link.getType());
             stmt.setLong(psId++, link.getUserLink1().getUserId());
             stmt.setLong(psId++, link.getUserLink2().getUserId());
 
@@ -113,10 +138,6 @@ public class UserLinkController {
                 where += " AND user_links.TYPE = ?";
             }
 
-            if (filter.getStatus() != null && filter.getStatus() != 0) {
-                where += " AND user_links.STATUS = ?";
-            }
-
             if (filter.getFromTs() != null) {
                 where += " AND user_links.CREATED_TS >= ? ";
             }
@@ -133,10 +154,6 @@ public class UserLinkController {
 
             if (filter.getType() != null && filter.getType() != 0) {
                 stmt.setInt(psId++, filter.getType());
-            }
-
-            if (filter.getStatus() != null && filter.getStatus() != 0) {
-                stmt.setInt(psId++, filter.getStatus());
             }
 
             if (filter.getFromTs() != null) {
@@ -160,7 +177,6 @@ public class UserLinkController {
                 UserLink link = new UserLink(
                         user_id_link1,
                         user_id_link2,
-                        res.getInt("STATUS"),
                         res.getInt("TYPE"),
                         res.getTimestamp("CREATED_TS")
                 );

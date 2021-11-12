@@ -16,10 +16,11 @@ import java.util.List;
 @RestController
 @CrossOrigin
 public class UserEndpoint {
-    @GetMapping("/getOne")
-    public User getOne(@RequestParam Long userId) throws  GetUserException{
+    @GetMapping("/getOne/{userId}")
+    public User getOne(@PathVariable("userId") Long userId) throws  GetUserException{
         UserFilter filter = new UserFilter();
         filter.addUserIds(userId);
+        filter.setGetUserLinks(true);
         return UserController.getOne(filter);
     }
 

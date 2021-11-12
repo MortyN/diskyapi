@@ -19,7 +19,7 @@ public class ArenaEndpoint{
         return arena;
     }
 
-    @DeleteMapping()
+    @DeleteMapping
     public static void delete(@RequestParam(required = true)  Long arenaId) throws ArenaException {
         ArenaController.delete(new Arena(arenaId));
     }
