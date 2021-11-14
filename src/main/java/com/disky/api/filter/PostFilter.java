@@ -10,4 +10,5 @@ public class PostFilter {
     private Integer type;
     private ScoreCard scoreCardId;
     private boolean getFromConnections;
+    private boolean getUserLinks = false;
 }

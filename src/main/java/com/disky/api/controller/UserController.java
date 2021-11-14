@@ -170,7 +170,7 @@ public class UserController {
            if (!Utility.nullOrEmpty(filter.getPhoneNumbers())) {
                where += " AND users.PHONE_NUMBER in ( " + Utility.listAsQuestionMarks(filter.getPhoneNumbers()) + ")";
            }
-           String sql = "SELECT " + User.getColumns() + " FROM users " + where;
+           String sql = "SELECT " + User.getColumns() + " FROM users " + where ;
            PreparedStatement stmt = conn.prepareStatement(sql);
            int psId = 1;
 

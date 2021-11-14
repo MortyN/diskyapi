@@ -9,6 +9,7 @@ import com.disky.api.model.*;
 import com.disky.api.util.DatabaseConnection;
 import com.disky.api.util.Utility;
 
+import java.lang.invoke.WrongMethodTypeException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +64,8 @@ public class PostController {
                     stmt.setLong(psId++, userId);
                 }
             }
-            log.info(stmt.toString());
+
+            log.info("POST SQL : " + stmt.toString());
             ResultSet res = stmt.executeQuery();
 
             while (res.next()) {
@@ -245,13 +247,16 @@ public class PostController {
     private static List<Long> getUserRelations(User user) throws PostControllerException {
         List<Long> userIds = new ArrayList<>();
         Connection conn = DatabaseConnection.getConnection();
+        Logger log = Logger.getLogger(String.valueOf(WrongMethodTypeException.class));
 
-        String sqlOne = "SELECT user_links.USER_ID_LINK1 AS userId FROM user_links WHERE user_links.USER_ID_LINK2 = ?";
-        String sqlTwo = "SELECT user_links.USER_ID_LINK2 AS userId FROM user_links WHERE user_links.USER_ID_LINK1 = ?";
+        String sqlOne = "SELECT user_links.USER_ID_LINK1 AS userId FROM user_links WHERE user_links.USER_ID_LINK2 = ? AND user_links.TYPE = ?";
+        String sqlTwo = "SELECT user_links.USER_ID_LINK2 AS userId FROM user_links WHERE user_links.USER_ID_LINK1 = ? AND user_links.TYPE = ?";
 
         try {
             PreparedStatement stmt1 = conn.prepareStatement(sqlOne);
             stmt1.setLong(1, user.getUserId());
+            stmt1.setLong(2, UserLink.USER_LINK_TYPE_ACCEPTED);
+            log.info(stmt1.toString());
             ResultSet res1 = stmt1.executeQuery();
 
             while (res1.next()) {
@@ -260,12 +265,15 @@ public class PostController {
 
             PreparedStatement stmt2 = conn.prepareStatement(sqlTwo);
             stmt2.setLong(1, user.getUserId());
+            stmt2.setLong(2, UserLink.USER_LINK_TYPE_ACCEPTED);
+            log.info("SHARK: " + stmt2.toString());
             ResultSet res2 = stmt2.executeQuery();
 
             while (res2.next()) {
                 userIds.add(res2.getLong("userId"));
             }
             userIds.add(user.getUserId());
+
 
         } catch (SQLException e) {
             throw new PostControllerException(e.getMessage());

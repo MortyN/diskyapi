@@ -20,10 +20,7 @@ import java.util.List;
 @CrossOrigin
 public class UserLinkEndpoint {
 
-    @PostMapping(path="/toggle")
-    public UserLink create(@RequestBody(required = true) ToggleUserWrapper toggleUserWrapper) throws UserLinkException {
-        return UserLinkController.toggleFriend(toggleUserWrapper.getSenderUser(), toggleUserWrapper.getRecipientUser());
-    }
+
 
     @PostMapping("/update")
     public static UserLink update(@RequestBody(required = true) UserLink userLink) throws  UserLinkException {

@@ -9,8 +9,8 @@ import java.util.Date;
 @Data
 public class UserLinkFilter{
     private User user;
+    private boolean fullUserObject;
     private Integer type;
-    private Integer status;
     private Timestamp fromTs;
     private Timestamp toTs;
 }

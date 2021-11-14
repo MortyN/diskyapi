@@ -33,11 +33,20 @@ public class UserLinkController {
                 if((link.getUserLink1().getUserId().equals(senderUser.getUserId()) && link.getUserLink2().getUserId().equals(recipientUser.getUserId()))
                  || (link.getUserLink2().getUserId().equals(senderUser.getUserId()) && link.getUserLink1().getUserId().equals(recipientUser.getUserId()))){
                     existingConnection = link;
+                    break;
                 }
             }
-            delete(existingConnection);
-            log.info("Deleting existing connection");
-            return null;
+            if(existingConnection != null){
+                log.info("Deleting existing connection");
+                delete(existingConnection);
+
+            }else{
+                log.info("creating pending connection");
+                UserLink newConnection = new UserLink(senderUser, recipientUser,UserLink.USER_LINK_TYPE_PENDING, null);
+                create(newConnection);
+                return newConnection;
+            }
+            return new UserLink(null,null,0,null);
         }
     }
     public static void create(UserLink link) throws UserLinkException {
@@ -132,7 +141,9 @@ public class UserLinkController {
 
             Connection conn = DatabaseConnection.getConnection();
 
-            String where = "WHERE user_links.USER_ID_LINK1 = ? or user_links.USER_ID_LINK2 = ?";
+            String where = "WHERE (user_links.USER_ID_LINK1 = ? or user_links.USER_ID_LINK2 = ?) ";
+            String join = " INNER JOIN users user_links1 ON user_links1.USER_ID = user_links.USER_ID_LINK1 " +
+                          " INNER JOIN users user_links2 ON user_links2.USER_ID = user_links.USER_ID_LINK2 ";
 
             if (filter.getType() != null &&filter.getType() != 0) {
                 where += " AND user_links.TYPE = ?";
@@ -146,7 +157,7 @@ public class UserLinkController {
                 where += " AND user_links.CREATED_TS <= ? ";
             }
 
-            String sql = "SELECT " + UserLink.getColumns() + " FROM user_links " + where;
+            String sql = "SELECT " + UserLink.getColumns() + " FROM user_links " + join + where;
             PreparedStatement stmt = conn.prepareStatement(sql);
 
             stmt.setLong(psId++, filter.getUser().getUserId());
@@ -168,15 +179,27 @@ public class UserLinkController {
 
             ResultSet res = stmt.executeQuery();
             while (res.next()) {
-                User user_id_link1 = new User(res.getLong("USER_ID_LINK1")),
-                        user_id_link2 = new User(res.getLong("USER_ID_LINK2"));
-                if (Utility.nullOrEmpty(filter.getUser().getUserLinks())) {
-                    user_id_link1 = UserController.getOne(new User(res.getLong("USER_ID_LINK1")));
-                    user_id_link2 = UserController.getOne(new User(res.getLong("USER_ID_LINK2")));
-                }
+                  //  User user_id_link1 = UserController.getOne(new User(res.getLong("USER_ID_LINK1")));
+                  // User user_id_link2 = UserController.getOne(new User(res.getLong("USER_ID_LINK2")));
                 UserLink link = new UserLink(
-                        user_id_link1,
-                        user_id_link2,
+                        new User(
+                                res.getLong("USER_ID_LINK1"),
+                                res.getString("USER_LINKS1_USERNAME"),
+                                res.getString("USER_LINKS1_FIRST_NAME"),
+                                res.getString("USER_LINKS1_LAST_NAME"),
+                                res.getString("USER_LINKS1_PHONE_NUMBER"),
+                                "************",
+                                res.getString("USER_LINKS1_IMG_KEY")
+                        ),
+                        new User(
+                                res.getLong("USER_ID_LINK2"),
+                                res.getString("USER_LINKS2_USERNAME"),
+                                res.getString("USER_LINKS2_FIRST_NAME"),
+                                res.getString("USER_LINKS2_LAST_NAME"),
+                                res.getString("USER_LINKS2_PHONE_NUMBER"),
+                                "************",
+                                res.getString("USER_LINKS2_IMG_KEY")
+                        ),
                         res.getInt("TYPE"),
                         res.getTimestamp("CREATED_TS")
                 );
@@ -185,7 +208,7 @@ public class UserLinkController {
 
             log.info("Successfully retireved: " + userLinkResult.size() + " users.");
             return userLinkResult;
-        } catch (SQLException | GetUserException e) {
+        } catch (SQLException  e) {
             throw new UserLinkException(e.getMessage());
         }
     }

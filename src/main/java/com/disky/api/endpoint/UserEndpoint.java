@@ -1,9 +1,13 @@
 package com.disky.api.endpoint;
 
 import com.disky.api.Exceptions.GetUserException;
+import com.disky.api.Exceptions.UserLinkException;
 import com.disky.api.controller.UserController;
+import com.disky.api.controller.UserLinkController;
 import com.disky.api.filter.UserFilter;
+import com.disky.api.model.ToggleUserWrapper;
 import com.disky.api.model.User;
+import com.disky.api.model.UserLink;
 import com.disky.api.util.S3Util;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +26,11 @@ public class UserEndpoint {
         filter.addUserIds(userId);
         filter.setGetUserLinks(true);
         return UserController.getOne(filter);
+    }
+
+    @PostMapping(path="/toggle")
+    public UserLink create(@RequestBody(required = true) ToggleUserWrapper toggleUserWrapper) throws UserLinkException {
+        return UserLinkController.toggleFriend(toggleUserWrapper.getSenderUser(), toggleUserWrapper.getRecipientUser());
     }
 
     @PostMapping(path = "/create", consumes = {"multipart/form-data"})
