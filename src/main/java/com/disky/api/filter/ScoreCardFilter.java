@@ -9,10 +9,6 @@ import java.util.List;
 
 @Data
 public class ScoreCardFilter {
-    private User user; //Required
-    private Arena arena;
     private User member;
-    private boolean getMembers = true;
-    private boolean getResult = true;
 }
 

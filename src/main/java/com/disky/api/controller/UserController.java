@@ -127,7 +127,9 @@ public class UserController {
         UserFilter filter = new UserFilter();
         filter.addUserIds(user.getUserId());
         User rawUser = getOne(filter);
-        rawUser.setPassword("***********");
+        if(rawUser != null){
+            rawUser.setPassword("***********");
+        }
         return rawUser;
     }
 

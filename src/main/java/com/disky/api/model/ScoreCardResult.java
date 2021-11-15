@@ -15,7 +15,7 @@ public class ScoreCardResult extends GenericModel{
 
     public static String getColumns(){
        return  " score_card_result.SCORE_CARD_MEMBER_ID RESULT_SCORE_CARD_MEMBER_ID," +
-               " score_card_result.ARENA_ROUND_HOLE_ID RESULT_SCORE_CARD_MEMBER_ID," +
+               " score_card_result.ARENA_ROUND_HOLE_ID RESULT_SCORE_CARD_HOLE_ID," +
                " score_card_result.SCORE_VALUE RESULT_SCORE_VALUE";
     }
 

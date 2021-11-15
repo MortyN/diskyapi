@@ -14,7 +14,6 @@ public class ScoreCardMember extends GenericModel{
     private ScoreCard scoreCard;
     private List<ScoreCardResult> results;
 
-
     public ScoreCardMember(Long scoreCardMemberId) {
         this.scoreCardMemberId = scoreCardMemberId;
     }
