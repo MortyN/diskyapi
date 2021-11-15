@@ -13,7 +13,7 @@ public class Arena extends GenericModel{
     private Long arenaId;
     private String arenaName;
     private String description;
-    private Date established;
+    private Timestamp established;
     private User createdBy;
     private Timestamp createdTs;
     private Timestamp updateTs;
@@ -26,7 +26,7 @@ public class Arena extends GenericModel{
         this.arenaId = arenaId;
     }
 
-    public Arena(Long arenaId, String arenaName, String description, Date established, User createdBy, Timestamp createdTs, Timestamp updateTs, String latitude, String longitude, boolean active) {
+    public Arena(Long arenaId, String arenaName, String description, Timestamp established, User createdBy, Timestamp createdTs, Timestamp updateTs, String latitude, String longitude, boolean active) {
         this.arenaId = arenaId;
         this.arenaName = arenaName;
         this.description = description;

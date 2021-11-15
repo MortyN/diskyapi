@@ -53,7 +53,7 @@ public class ArenaController {
 
             stmt.setString(psId++, arena.getArenaName());
             stmt.setString(psId++, arena.getDescription());
-            stmt.setDate(psId++, arena.getEstablished());
+            stmt.setTimestamp(psId++, arena.getEstablished());
             stmt.setLong(psId++, arena.getCreatedBy().getUserId());
             stmt.setTimestamp(psId++, arena.getCreatedTs());
             stmt.setTimestamp(psId++, arena.getCreatedTs());
@@ -81,7 +81,7 @@ public class ArenaController {
 
             stmt.setString(psId++, arena.getArenaName());
             stmt.setString(psId++, arena.getDescription());
-            stmt.setDate(psId++, arena.getEstablished());
+            stmt.setTimestamp(psId++, arena.getEstablished());
             stmt.setTimestamp(psId++, arena.getUpdateTs());
             stmt.setString(psId++, arena.getLatitude());
             stmt.setString(psId++, arena.getLongitude());
@@ -169,7 +169,7 @@ public class ArenaController {
                                 res.getLong("ARENA_ARENA_ID"),
                                 res.getString("ARENA_NAME"),
                                 res.getString("ARENA_DESCRIPTION"),
-                                res.getDate("ARENA_ESTABLISHED"),
+                                res.getTimestamp("ARENA_ESTABLISHED"),
                                 user,
                                 res.getTimestamp("ARENA_CREATED_TS"),
                                 res.getTimestamp("ARENA_MODIFIED_TS"),
