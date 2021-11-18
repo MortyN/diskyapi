@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class ScoreCardController {
-    public static ScoreCard create(ScoreCard scoreCard) throws ScoreCardException {
+    public static void create(ScoreCard scoreCard) throws ScoreCardException {
         if (scoreCard.getCreatedBy() == null && scoreCard.getCreatedBy().getUserId() == 0)
             throw new ScoreCardException("User is required!");
 
@@ -26,7 +26,7 @@ public class ScoreCardController {
 
             if (scoreCard.getCardId() != null && scoreCard.getCardId() != 0L) {
                 update(scoreCard);
-                return null;
+                return;
             }
             String sql = "INSERT INTO score_cards (ARENA_ROUND_ID, START_TS, CREATED_BY_USER_ID) values (?,?,?)";
 
@@ -51,9 +51,6 @@ public class ScoreCardController {
                 scoreCard.getMembers().forEach((member) -> member.setScoreCard(new ScoreCard(scoreCard.getCardId())));
                 ScoreCardMemberController.create(scoreCard.getMembers());
             }
-            ScoreCardFilter filter = new ScoreCardFilter();
-                    filter.setScoreCardId(scoreCard.getCardId());
-            return getScoreCard(filter).get(0);
         } catch (SQLException | ArenaRoundException | GetUserException | ScoreCardMemberException e) {
             throw new ScoreCardException(e.getMessage());
         }
