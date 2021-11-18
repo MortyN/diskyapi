@@ -81,7 +81,18 @@ public class ScoreCardController {
         Logger log = Logger.getLogger(String.valueOf(ScoreCardController.class));
         Connection conn = DatabaseConnection.getConnection();
         int psId = 1;
+        String where = "";
 
+        if(filter.getMember() != null && filter.getMember().getUserId() != null && !filter.getMember().getUserId().equals(0l)){
+            where += "score_cards.CARD_ID IN ( " +
+                    " SELECT score_cards.CARD_ID FROM score_cards " +
+                            " LEFT JOIN score_card_members on score_cards.CARD_ID = score_card_members.CARD_ID " +
+                            " WHERE score_card_members.USER_ID = ? )";
+        }
+
+        if(filter.getScoreCardId() != null && !filter.getScoreCardId().equals(0l)){
+            where += "score_cards.CARD_ID = ?";
+        }
             String sql = "SELECT "
                     +  ScoreCard.getColumns()
                     + ", " + ArenaRound.getColumns()
@@ -97,16 +108,20 @@ public class ScoreCardController {
                                     " LEFT JOIN score_card_members on score_cards.CARD_ID = score_card_members.CARD_ID " +
                                     " LEFT JOIN score_card_result on score_card_members.SCORE_CARD_MEMBER_ID = score_card_result.SCORE_CARD_MEMBER_ID " +
                                     " INNER JOIN arena_rounds_hole ar on score_card_result.ARENA_ROUND_HOLE_ID = ar.ARENA_ROUND_HOLE_ID " +
-                        " WHERE score_cards.CARD_ID IN ( " +
-                                " SELECT score_cards.CARD_ID FROM score_cards " +
-                                " LEFT JOIN score_card_members on score_cards.CARD_ID = score_card_members.CARD_ID " +
-                                " WHERE score_card_members.USER_ID = ? )";
+                        " WHERE 1=1 AND " + where;
 
 
             PreparedStatement stmt = conn.prepareStatement(sql);
             log.info(stmt.toString());
 
-            stmt.setLong(1, filter.getMember().getUserId());
+            if(filter.getMember() != null && filter.getMember().getUserId() != null && !filter.getMember().getUserId().equals(0l)){
+                stmt.setLong(psId++, filter.getMember().getUserId());
+            }
+
+            if(filter.getScoreCardId() != null && !filter.getScoreCardId().equals(0l)){
+                stmt.setLong(psId++, filter.getScoreCardId());
+            }
+
 
             log.info(stmt.toString());
 
