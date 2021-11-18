@@ -51,6 +51,7 @@ public class ScoreCardController {
                 scoreCard.getMembers().forEach((member) -> member.setScoreCard(new ScoreCard(scoreCard.getCardId())));
                 ScoreCardMemberController.create(scoreCard.getMembers());
             }
+
         } catch (SQLException | ArenaRoundException | GetUserException | ScoreCardMemberException e) {
             throw new ScoreCardException(e.getMessage());
         }
@@ -109,7 +110,6 @@ public class ScoreCardController {
                                     " LEFT JOIN score_card_result on score_card_members.SCORE_CARD_MEMBER_ID = score_card_result.SCORE_CARD_MEMBER_ID " +
                                     " INNER JOIN arena_rounds_hole ar on score_card_result.ARENA_ROUND_HOLE_ID = ar.ARENA_ROUND_HOLE_ID " +
                         " WHERE 1=1 AND " + where;
-
 
             PreparedStatement stmt = conn.prepareStatement(sql);
             log.info(stmt.toString());

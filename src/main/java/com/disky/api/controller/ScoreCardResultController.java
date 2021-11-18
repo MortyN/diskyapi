@@ -22,20 +22,13 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class ScoreCardResultController {
-    //TODO: Make a filter
-    //TODO: Make an exceptionHandler
-    //TODO: DELTE - Potentially not something we want to do.
-    //TODO: SAVE -
-    //TODO: UPDATE -
-    //TODO: GET -
-
 
     public static void save(ScoreCardResult scoreCardResult) throws ScoreCardResultException{
         Logger log = Logger.getLogger(String.valueOf(ScoreCardResultController.class));
         Connection conn = DatabaseConnection.getConnection();
         try {
             int psId = 1;
-            //TODO: Is this of correct?
+
             String sql = "INSERT INTO score_card_result (SCORE_CARD_MEMBER_ID, ARENA_ROUND_HOLE_ID, SCORE_VALUE) VALUES (?, ?, ?)";
 
             PreparedStatement stmt = conn.prepareStatement(sql);
@@ -47,7 +40,6 @@ public class ScoreCardResultController {
         }catch (SQLException e){
             throw new ScoreCardResultException(e.getMessage());
         }
-
     }
 
     public static void Update(ScoreCardResult scoreCardResult) throws ScoreCardResultException {
