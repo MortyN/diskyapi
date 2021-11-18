@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class ScoreCardController {
-    public ScoreCard create(ScoreCard scoreCard) throws ScoreCardException {
+    public static ScoreCard create(ScoreCard scoreCard) throws ScoreCardException {
         if (scoreCard.getCreatedBy() == null && scoreCard.getCreatedBy().getUserId() == 0)
             throw new ScoreCardException("User is required!");
 
