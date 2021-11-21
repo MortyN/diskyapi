@@ -44,7 +44,10 @@ public class ArenaController {
         Connection conn = DatabaseConnection.getConnection();
         try {
             int psId = 1;
-            if (arena.getArenaId() != null && !arena.getArenaId().equals(0L)) update(arena);
+            if (arena.getArenaId() != null && !arena.getArenaId().equals(0L)){
+                update(arena);
+                return arena;
+            }
             String sql = "INSERT INTO arena (NAME, DESCRIPTION, CREATED_BY_USER_ID, CREATED_TS, MODIFIED_TS, LONGITUDE, LATITUDE, ACTIVE) VALUES (?,?,?,?,?,?,?,?)";
 
             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -103,7 +106,7 @@ public class ArenaController {
 
             log.info("Rows affected: " + stmt.executeUpdate());
 
-            if(Utility.nullOrEmpty(arena.getRounds())){
+            if(!Utility.nullOrEmpty(arena.getRounds())){
                 for(ArenaRound round : arena.getRounds()){
                     ArenaRoundController.create(round);
                 }
