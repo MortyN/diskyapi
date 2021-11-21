@@ -181,6 +181,9 @@ public class PostController {
                 update(post);
                 return;
             }
+            if(post.getType() != 2){
+                post.setScoreCard(null);
+            }
             post.setPostedTs(new Timestamp(System.currentTimeMillis()));
             post.setUpdatedTs(new Timestamp(System.currentTimeMillis()));
 
