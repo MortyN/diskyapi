@@ -35,7 +35,7 @@ public class ArenaRoundController {
              round.setUpdateTs(ts);
              String sql = "INSERT INTO arena_rounds (ARENA_ID, HOLE_AMOUNT, PAYMENT, DESCRIPTION, CREATED_BY_USER_ID, CREATED_TS, MODIFIED_TS) values (?,?,?,?,?, ?,?)";
 
-             PreparedStatement stmt = conn.prepareStatement(sql);
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
              stmt.setLong(psId++, round.getArena().getArenaId());
              stmt.setInt(psId++, round.getHoleAmount());
@@ -50,6 +50,7 @@ public class ArenaRoundController {
 
              log.info("Rows affected: " + stmt.executeUpdate());
              ResultSet rs = stmt.getGeneratedKeys();
+
              if(rs.next()){
                  round.setArenaRoundId(rs.getLong(1));
              }
@@ -252,5 +253,8 @@ public class ArenaRoundController {
         }
         if(round.getCreatedBy() == null || round.getCreatedBy().getUserId() == 0) throw new ArenaRoundException("User created by is required!");
 
+        if(Utility.nullOrEmpty(round.getHoles())){
+            round.setHoleAmount(round.getHoles().size());
+        }
      }
 }
