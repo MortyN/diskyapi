@@ -26,7 +26,7 @@ public class ArenaRoundController {
              int psId = 1;
              validateCreate(round);
 
-             if(round.getArenaRoundId() !=  null && !round.getArenaRoundId().equals(0L)) {
+             if(round.getArenaRoundId() != null && !round.getArenaRoundId().equals(0L)) {
                  update(round);
                  return;
              } else {
@@ -109,6 +109,7 @@ public class ArenaRoundController {
             stmt.setTimestamp(psId++, round.getUpdateTs());
             stmt.setLong(psId++, round.getArenaRoundId());
 
+            log.info(stmt.toString());
             log.info("Rows affected: " + stmt.executeUpdate());
 
             if(!Utility.nullOrEmpty(round.getHoles())){

@@ -46,6 +46,7 @@ public class ArenaController {
             int psId = 1;
             if (arena.getArenaId() != null && !arena.getArenaId().equals(0L)){
                 update(arena);
+
                 return arena;
             }
             String sql = "INSERT INTO arena (NAME, DESCRIPTION, CREATED_BY_USER_ID, CREATED_TS, MODIFIED_TS, LONGITUDE, LATITUDE, ACTIVE) VALUES (?,?,?,?,?,?,?,?)";
