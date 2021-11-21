@@ -12,6 +12,7 @@ import com.disky.api.util.Utility;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 public class ScoreCardController {
@@ -196,7 +197,12 @@ public class ScoreCardController {
                         new ArenaRoundHole( rs.getLong("RESULT_SCORE_CARD_HOLE_ID")),
                         rs.getInt("RESULT_SCORE_VALUE"));
 
-                if(Utility.nullOrEmpty(member.getResults()) || !member.getResults().stream().anyMatch( o -> o.getScoreCardMember().getScoreCardMemberId().equals(scoreCardResult.getScoreCardMember().getScoreCardMemberId()) && o.getArenaRoundHole().getArenaRoundHoleId().equals(scoreCardResult.getArenaRoundHole().getArenaRoundHoleId()))){
+                ScoreCardMember currentScoreCardMember = scoreCard.getMembers().stream()
+                        .filter(m -> m.getScoreCardMemberId().equals(scoreCardResult.getScoreCardMember().getScoreCardMemberId()))
+                        .findAny()
+                        .orElse(null);
+
+                if(Utility.nullOrEmpty(currentScoreCardMember.getResults()) || !currentScoreCardMember.getResults().stream().anyMatch( o -> o.getScoreCardMember().getScoreCardMemberId().equals(scoreCardResult.getScoreCardMember().getScoreCardMemberId()) && o.getArenaRoundHole().getArenaRoundHoleId().equals(scoreCardResult.getArenaRoundHole().getArenaRoundHoleId()))){
                    if(scoreCardResult.getScoreCardMember() != null){
                        ArenaRoundHole arenaRoundHoleResult = new ArenaRoundHole(
                                rs.getLong("AR_ARENA_ROUND_HOLE_ID"),
@@ -211,7 +217,7 @@ public class ScoreCardController {
                                rs.getInt("AR_ORDER")
                        );
                        scoreCardResult.setArenaRoundHole(arenaRoundHoleResult);
-                       member.addResult(scoreCardResult);
+                       currentScoreCardMember.addResult(scoreCardResult);
                    }
                 }
             }
