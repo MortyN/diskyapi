@@ -28,30 +28,32 @@ public class ScoreCardController {
             if (scoreCard.getCardId() != null && scoreCard.getCardId() != 0L) {
                 update(scoreCard);
                 return;
-            }
-            String sql = "INSERT INTO score_cards (ARENA_ROUND_ID, START_TS, CREATED_BY_USER_ID) values (?,?,?)";
+            }else{
+                String sql = "INSERT INTO score_cards (ARENA_ROUND_ID, START_TS, CREATED_BY_USER_ID) values (?,?,?)";
 
-            PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            if (scoreCard.getStartTs() == null) {
-                scoreCard.setStartTs(new Timestamp(System.currentTimeMillis()));
-            }
-            stmt.setLong(psId++, scoreCard.getArenaRound().getArenaRoundId());
-            stmt.setTimestamp(psId++, scoreCard.getStartTs());
-            stmt.setLong(psId++, scoreCard.getCreatedBy().getUserId());
+                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                if (scoreCard.getStartTs() == null) {
+                    scoreCard.setStartTs(new Timestamp(System.currentTimeMillis()));
+                }
+                stmt.setLong(psId++, scoreCard.getArenaRound().getArenaRoundId());
+                stmt.setTimestamp(psId++, scoreCard.getStartTs());
+                stmt.setLong(psId++, scoreCard.getCreatedBy().getUserId());
 
-            log.info("Rows affected: " + stmt.executeUpdate());
+                log.info("Rows affected: " + stmt.executeUpdate());
 
-            ResultSet rs = stmt.getGeneratedKeys();
-            if (rs.next()) {
-                scoreCard.setCardId(rs.getLong(1));
-            }
-            scoreCard.setArenaRound(ArenaRoundController.get(scoreCard.getArenaRound()));
-            scoreCard.setCreatedBy(UserController.getOne(scoreCard.getCreatedBy()));
+                ResultSet rs = stmt.getGeneratedKeys();
+                if (rs.next()) {
+                    scoreCard.setCardId(rs.getLong(1));
+                }
+                scoreCard.setArenaRound(ArenaRoundController.get(scoreCard.getArenaRound()));
+                scoreCard.setCreatedBy(UserController.getOne(scoreCard.getCreatedBy()));
 
-            if (!Utility.nullOrEmpty(scoreCard.getMembers())) {
-                scoreCard.getMembers().forEach((member) -> member.setScoreCard(new ScoreCard(scoreCard.getCardId())));
-                ScoreCardMemberController.create(scoreCard.getMembers());
+                if (!Utility.nullOrEmpty(scoreCard.getMembers())) {
+                    scoreCard.getMembers().forEach((member) -> member.setScoreCard(new ScoreCard(scoreCard.getCardId())));
+                    ScoreCardMemberController.create(scoreCard.getMembers());
+                }
             }
+
         } catch (SQLException | ArenaRoundException | GetUserException | ScoreCardMemberException e) {
             throw new ScoreCardException(e.getMessage());
         }

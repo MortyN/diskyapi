@@ -27,39 +27,39 @@ public class ArenaRoundController {
              validateCreate(round);
 
              if(round.getArenaRoundId() !=  null && !round.getArenaRoundId().equals(0L)) {
-
                  update(round);
                  return;
+             } else {
+                 Timestamp ts =  new Timestamp(System.currentTimeMillis());
+                 round.setCreationTs(ts);
+                 round.setUpdateTs(ts);
+                 String sql = "INSERT INTO arena_rounds (ARENA_ID, HOLE_AMOUNT, PAYMENT, DESCRIPTION, CREATED_BY_USER_ID, CREATED_TS, MODIFIED_TS) values (?,?,?,?,?, ?,?)";
+
+                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+                 stmt.setLong(psId++, round.getArena().getArenaId());
+                 stmt.setInt(psId++, round.getHoleAmount());
+                 stmt.setBoolean(psId++, round.getPayment());
+                 stmt.setString(psId++, round.getDescription());
+                 stmt.setLong(psId++, round.getCreatedBy().getUserId());
+                 stmt.setTimestamp(psId++, round.getCreationTs());
+                 stmt.setTimestamp(psId++, round.getUpdateTs());
+
+                 round.setArena(ArenaController.get(round.getArena()));
+                 round.setCreatedBy(UserController.getOne(round.getCreatedBy()));
+
+                 log.info("Rows affected: " + stmt.executeUpdate());
+                 ResultSet rs = stmt.getGeneratedKeys();
+
+                 if(rs.next()){
+                     round.setArenaRoundId(rs.getLong(1));
+                 }
+
+                 if(!Utility.nullOrEmpty(round.getHoles())){
+                     round.setHoles(ArenaHoleController.create(round.getHoles(),round, conn));
+                 }
+                 conn.commit();
              }
-             Timestamp ts =  new Timestamp(System.currentTimeMillis());
-             round.setCreationTs(ts);
-             round.setUpdateTs(ts);
-             String sql = "INSERT INTO arena_rounds (ARENA_ID, HOLE_AMOUNT, PAYMENT, DESCRIPTION, CREATED_BY_USER_ID, CREATED_TS, MODIFIED_TS) values (?,?,?,?,?, ?,?)";
-
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-
-             stmt.setLong(psId++, round.getArena().getArenaId());
-             stmt.setInt(psId++, round.getHoleAmount());
-             stmt.setBoolean(psId++, round.getPayment());
-             stmt.setString(psId++, round.getDescription());
-             stmt.setLong(psId++, round.getCreatedBy().getUserId());
-             stmt.setTimestamp(psId++, round.getCreationTs());
-             stmt.setTimestamp(psId++, round.getUpdateTs());
-
-             round.setArena(ArenaController.get(round.getArena()));
-             round.setCreatedBy(UserController.getOne(round.getCreatedBy()));
-
-             log.info("Rows affected: " + stmt.executeUpdate());
-             ResultSet rs = stmt.getGeneratedKeys();
-
-             if(rs.next()){
-                 round.setArenaRoundId(rs.getLong(1));
-             }
-
-             if(!Utility.nullOrEmpty(round.getHoles())){
-                 round.setHoles(ArenaHoleController.create(round.getHoles(),round, conn));
-             }
-             conn.commit();
          } catch (SQLException | ArenaRoundException | GetUserException | ArenaException e) {
              try {
                  conn.rollback();
