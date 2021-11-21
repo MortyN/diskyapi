@@ -99,12 +99,13 @@ public class ArenaRoundController {
         try {
             int psId = 1;
 
-            String sql = "UPDATE arena_rounds SET PAYMENT = ?, DESCRIPTION = ?, MODIFIED_TS = ? WHERE ARENA_ROUND_ID = ?";
+            String sql = "UPDATE arena_rounds SET PAYMENT = ?, DESCRIPTION = ?, MODIFIED_TS = ?, HOLE_AMOUNT = ? WHERE ARENA_ROUND_ID = ?";
 
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setBoolean(psId++, round.getPayment());
             stmt.setString(psId++, round.getDescription());
             stmt.setTimestamp(psId++, round.getUpdateTs());
+            stmt.setLong(psId++, round.getHoleAmount());
             stmt.setLong(psId++, round.getArenaRoundId());
 
             log.info(stmt.toString());
