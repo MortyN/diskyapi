@@ -44,7 +44,7 @@ public class ArenaController {
         Connection conn = DatabaseConnection.getConnection();
         try {
             int psId = 1;
-            if (arena.getArenaId() != null && arena.getArenaId() != 0L) update(arena);
+            if (arena.getArenaId() != null && !arena.getArenaId().equals(0L)) update(arena);
             String sql = "INSERT INTO arena (NAME, DESCRIPTION, CREATED_BY_USER_ID, CREATED_TS, MODIFIED_TS, LONGITUDE, LATITUDE, ACTIVE) VALUES (?,?,?,?,?,?,?,?)";
 
             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -86,7 +86,7 @@ public class ArenaController {
         try {
             int psId = 1;
 
-            String sql = "UPDATE arena SET NAME = ?, DESCRIPTION = ?, ESTABLISHED = ?, MODIFIED_TS = ?, LATITUDE = ?, LONGITUDE = ?, ACTIVE = ?";
+            String sql = "UPDATE arena SET NAME = ?, DESCRIPTION = ?, ESTABLISHED = ?, MODIFIED_TS = ?, LATITUDE = ?, LONGITUDE = ?, ACTIVE = ? WHERE ARENA_ID = ? ";
 
             PreparedStatement stmt = conn.prepareStatement(sql);
             arena.setUpdateTs(new Timestamp(System.currentTimeMillis()));
@@ -98,6 +98,8 @@ public class ArenaController {
             stmt.setString(psId++, arena.getLatitude());
             stmt.setString(psId++, arena.getLongitude());
             stmt.setBoolean(psId++, arena.isActive());
+            stmt.setLong(psId++, arena.getArenaId());
+
 
             log.info("Rows affected: " + stmt.executeUpdate());
 

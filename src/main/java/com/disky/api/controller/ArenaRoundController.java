@@ -26,7 +26,8 @@ public class ArenaRoundController {
              int psId = 1;
              validateCreate(round);
 
-             if(round.getArenaRoundId() !=  null && round.getArenaRoundId() != 0L) {
+             if(round.getArenaRoundId() !=  null && !round.getArenaRoundId().equals(0L)) {
+
                  update(round);
                  return;
              }

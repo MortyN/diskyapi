@@ -34,7 +34,7 @@ public class ArenaHoleController {
             validateCreate(hole);
             String fields = "";
             String marks = "";
-            if(hole.getArenaRoundHoleId() !=  null && hole.getArenaRoundHoleId() != 0L) {
+            if(hole.getArenaRoundHoleId() !=  null && !hole.getArenaRoundHoleId().equals(0L)) {
                 update(hole);
                 return null;
             }
