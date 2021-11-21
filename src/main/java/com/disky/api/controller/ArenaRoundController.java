@@ -110,6 +110,10 @@ public class ArenaRoundController {
             stmt.setLong(psId++, round.getArenaRoundId());
 
             log.info("Rows affected: " + stmt.executeUpdate());
+
+            if(!Utility.nullOrEmpty(round.getHoles())){
+                round.setHoles(ArenaHoleController.create(round.getHoles(),round, conn));
+            }
         } catch (SQLException e) {
             throw new ArenaRoundException(e.getMessage());
         }
