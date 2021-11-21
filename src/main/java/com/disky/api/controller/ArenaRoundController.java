@@ -21,7 +21,7 @@ public class ArenaRoundController {
          Logger log = Logger.getLogger(String.valueOf(ArenaRoundController.class));
          Connection conn = DatabaseConnection.getConnection();
          try {
-             conn.setAutoCommit(false);
+
 
              int psId = 1;
              validateCreate(round);
@@ -54,11 +54,9 @@ public class ArenaRoundController {
                  if(rs.next()){
                      round.setArenaRoundId(rs.getLong(1));
                  }
-
                  if(!Utility.nullOrEmpty(round.getHoles())){
                      round.setHoles(ArenaHoleController.create(round.getHoles(),round, conn));
                  }
-                 conn.commit();
              }
          } catch (SQLException | ArenaRoundException | GetUserException | ArenaException e) {
              try {
