@@ -16,7 +16,7 @@ public class DatabaseConnection {
 
     public static Connection getConnection() {
         if (con != null) return con;
-        return getConnection("jdbc:mysql://92.220.179.219:3306/MOB3100_DEV", "MOB3100_DEV", "Platinum");
+        return getConnection("jdbc:mysql://81.166.183.145:3306/MOB3100_DEV", "MOB3100_DEV", "Platinum");
     }
 
     private static Connection getConnection(String url, String user_name, String password) {
