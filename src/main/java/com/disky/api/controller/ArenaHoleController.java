@@ -34,35 +34,37 @@ public class ArenaHoleController {
             validateCreate(hole);
             String fields = "";
             String marks = "";
-            if(hole.getArenaRoundHoleId() !=  null && hole.getArenaRoundHoleId() != 0L) {
+            if(hole.getArenaRoundHoleId() !=  null && !hole.getArenaRoundHoleId().equals(0L)) {
                 update(hole);
                 return null;
+            } else {
+                if(hole.getStart_latitude() != null && hole.getStart_longitude() != null && hole.getStart_latitude() != null && hole.getStart_longitude() != null){
+                    fields = " , START_LATITUDE , START_LONGITUDE, END_LATITUDE , END_LONGITUDE ";
+                    marks = ",?,?,?,?";
+                }
+
+                String sql = "INSERT INTO arena_rounds_hole (ARENA_ROUND_ID, HOLE_NAME, PAR_VALUE, SORT" + fields + ") values (?, ?, ?, ?" + marks + ")";
+
+                log.info(sql);
+                PreparedStatement stmt = conn.prepareStatement(sql);
+
+                stmt.setLong(psId++, hole.getArenaRound().getArenaRoundId());
+                stmt.setString(psId++, "Hole " + hole.getOrder());
+                stmt.setInt(psId++, hole.getParValue());
+                stmt.setInt(psId++, hole.getOrder());
+
+                if(hole.getStart_latitude() != null && hole.getStart_longitude() != null && hole.getStart_latitude() != null && hole.getStart_longitude() != null){
+                    stmt.setString(psId++, hole.getStart_latitude());
+                    stmt.setString(psId++, hole.getStart_longitude());
+                    stmt.setString(psId++, hole.getEnd_latitude());
+                    stmt.setString(psId++, hole.getEnd_longitude());
+                }
+
+                hole.setArenaRound(ArenaRoundController.get(hole.getArenaRound()));
+
+                log.info("Rows affected: " + stmt.executeUpdate());
             }
-            if(hole.getStart_latitude() != null && hole.getStart_longitude() != null && hole.getStart_latitude() != null && hole.getStart_longitude() != null){
-                fields = " , START_LATITUDE , START_LONGITUDE, END_LATITUDE , END_LONGITUDE ";
-                marks = ",?,?,?,?";
-            }
 
-            String sql = "INSERT INTO arena_rounds_hole (ARENA_ROUND_ID, HOLE_NAME, PAR_VALUE, SORT" + fields + ") values (?, ?, ?, ?" + marks + ")";
-
-            log.info(sql);
-            PreparedStatement stmt = conn.prepareStatement(sql);
-
-            stmt.setLong(psId++, hole.getArenaRound().getArenaRoundId());
-            stmt.setString(psId++, "Hole " + hole.getOrder());
-            stmt.setInt(psId++, hole.getParValue());
-            stmt.setInt(psId++, hole.getOrder());
-
-            if(hole.getStart_latitude() != null && hole.getStart_longitude() != null && hole.getStart_latitude() != null && hole.getStart_longitude() != null){
-                stmt.setString(psId++, hole.getStart_latitude());
-                stmt.setString(psId++, hole.getStart_longitude());
-                stmt.setString(psId++, hole.getEnd_latitude());
-                stmt.setString(psId++, hole.getEnd_longitude());
-            }
-
-            hole.setArenaRound(ArenaRoundController.get(hole.getArenaRound()));
-
-            log.info("Rows affected: " + stmt.executeUpdate());
         } catch (SQLException | ArenaRoundException  e) {
             throw new ArenaRoundException(e.getMessage());
         }

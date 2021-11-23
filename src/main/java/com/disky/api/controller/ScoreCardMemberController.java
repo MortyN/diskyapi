@@ -2,11 +2,13 @@ package com.disky.api.controller;
 
 import com.disky.api.Exceptions.GetUserException;
 import com.disky.api.Exceptions.ScoreCardMemberException;
+import com.disky.api.Exceptions.ScoreCardResultException;
 import com.disky.api.filter.ScoreCardMemberFilter;
 import com.disky.api.model.ScoreCard;
 import com.disky.api.model.ScoreCardMember;
 import com.disky.api.model.User;
 import com.disky.api.util.DatabaseConnection;
+import com.disky.api.util.Utility;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -46,6 +48,17 @@ public class ScoreCardMemberController {
                 scoreCardMember.setScoreCardMemberId(rs.getLong(1));
             }
             scoreCardMember.setUser(UserController.getOne(scoreCardMember.getUser()));
+
+            if(!Utility.nullOrEmpty(scoreCardMember.getResults())){
+                scoreCardMember.getResults().forEach(result -> {
+                    try {
+                        result.setScoreCardMember(new ScoreCardMember(scoreCardMember.getScoreCardMemberId()));
+                        ScoreCardResultController.save(result);
+                    } catch (ScoreCardResultException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
         }catch (SQLException | GetUserException e){
             throw new ScoreCardMemberException(e.getMessage());
         }

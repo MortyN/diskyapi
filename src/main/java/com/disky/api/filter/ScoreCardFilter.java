@@ -9,6 +9,7 @@ import java.util.List;
 
 @Data
 public class ScoreCardFilter {
+    public Long scoreCardId;
     private User member;
 }
 

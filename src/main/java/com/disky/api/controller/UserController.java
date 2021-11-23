@@ -99,15 +99,15 @@ public class UserController {
                    S3Util.s3DeletePhoto(user.getImgKey());
                }
            }
-           String sql = "UPDATE users SET USERNAME = ?, FIRST_NAME = ?, LAST_NAME = ?, PHONE_NUMBER = ?, PASSWORD = ?" + fields + " WHERE USER_ID = ?";
+           String sql = "UPDATE users SET FIRST_NAME = ?, LAST_NAME = ?, PHONE_NUMBER = ?" + fields + " WHERE USER_ID = ?";
 
            PreparedStatement stmt = conn.prepareStatement(sql);
-           stmt.setString(psId++, user.getUserName());
            stmt.setString(psId++, user.getFirstName());
            stmt.setString(psId++, user.getLastName());
            stmt.setString(psId++, user.getPhoneNumber());
-           stmt.setString(psId++, user.getPassword());
-           stmt.setString(psId++, fileName);
+           if(fileName != null){
+               stmt.setString(psId++, fileName);
+           }
            stmt.setLong(psId++, user.getUserId());
            log.info(stmt.toString());
 

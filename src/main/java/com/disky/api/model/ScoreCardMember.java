@@ -44,7 +44,7 @@ public class ScoreCardMember extends GenericModel{
         if(Utility.nullOrEmpty(this.results)) return null;
         final int[] sum = {0};
         this.results.forEach((result) -> {
-            sum[0] += result.getArenaRoundHole().getParValue();
+                sum[0] += result.getArenaRoundHole().getParValue();
         });
         return sum[0];
     }
@@ -53,7 +53,9 @@ public class ScoreCardMember extends GenericModel{
         if(Utility.nullOrEmpty(this.results)) return null;
         final int[] sum = {0};
         this.results.forEach((result) -> {
-            sum[0] += result.getScoreValue() - result.getArenaRoundHole().getParValue();
+            if(!result.getScoreValue().equals(0)) {
+                sum[0] += result.getScoreValue() - result.getArenaRoundHole().getParValue();
+            }
         });
         return sum[0];
     }

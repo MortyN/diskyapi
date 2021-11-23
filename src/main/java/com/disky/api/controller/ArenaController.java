@@ -1,6 +1,7 @@
 package com.disky.api.controller;
 
 import com.disky.api.Exceptions.ArenaException;
+import com.disky.api.Exceptions.ArenaRoundException;
 import com.disky.api.Exceptions.GetUserException;
 import com.disky.api.filter.ArenaFilter;
 import com.disky.api.model.*;
@@ -38,22 +39,25 @@ public class ArenaController {
         }
     }
 
-    public static void create(Arena arena) throws ArenaException{
+    public static Arena create(Arena arena) throws ArenaException{
         Logger log = Logger.getLogger(String.valueOf(ArenaController.class));
         Connection conn = DatabaseConnection.getConnection();
         try {
             int psId = 1;
-            if (arena.getArenaId() != null && arena.getArenaId() != 0L) update(arena);
-            String sql = "INSERT INTO arena (NAME, DESCRIPTION, ESTABLISHED, CREATED_BY_USER_ID, CREATED_TS, MODIFIED_TS, LONGITUDE, LATITUDE, ACTIVE) VALUES (?,?,?,?,?,?,?,?,?)";
+            if (arena.getArenaId() != null && !arena.getArenaId().equals(0L)){
+                update(arena);
 
-            PreparedStatement stmt = conn.prepareStatement(sql);
+                return arena;
+            }
+            String sql = "INSERT INTO arena (NAME, DESCRIPTION, CREATED_BY_USER_ID, CREATED_TS, MODIFIED_TS, LONGITUDE, LATITUDE, ACTIVE) VALUES (?,?,?,?,?,?,?,?)";
+
+            PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             arena.setCreatedTs(new Timestamp(System.currentTimeMillis()));
             arena.setUpdateTs(arena.getCreatedTs());
             arena.setActive(true);
 
             stmt.setString(psId++, arena.getArenaName());
             stmt.setString(psId++, arena.getDescription());
-            stmt.setTimestamp(psId++, arena.getEstablished());
             stmt.setLong(psId++, arena.getCreatedBy().getUserId());
             stmt.setTimestamp(psId++, arena.getCreatedTs());
             stmt.setTimestamp(psId++, arena.getCreatedTs());
@@ -63,9 +67,21 @@ public class ArenaController {
 
             log.info("Rows affected: " + stmt.executeUpdate());
 
-        } catch (SQLException e) {
+            ResultSet rs = stmt.getGeneratedKeys();
+            if (rs.next()) {
+                arena.setArenaId(rs.getLong(1));
+            }
+
+            if(Utility.nullOrEmpty(arena.getRounds())){
+                for(ArenaRound round : arena.getRounds()){
+                    ArenaRoundController.create(round);
+                }
+            }
+
+        } catch (SQLException | ArenaRoundException e) {
             throw new ArenaException(e.getMessage());
         }
+        return arena;
     }
 
     private static void update(Arena arena) throws ArenaException {
@@ -74,7 +90,7 @@ public class ArenaController {
         try {
             int psId = 1;
 
-            String sql = "UPDATE arena SET NAME = ?, DESCRIPTION = ?, ESTABLISHED = ?, MODIFIED_TS = ?, LATITUDE = ?, LONGITUDE = ?, ACTIVE = ?";
+            String sql = "UPDATE arena SET NAME = ?, DESCRIPTION = ?, ESTABLISHED = ?, MODIFIED_TS = ?, LATITUDE = ?, LONGITUDE = ?, ACTIVE = ? WHERE ARENA_ID = ? ";
 
             PreparedStatement stmt = conn.prepareStatement(sql);
             arena.setUpdateTs(new Timestamp(System.currentTimeMillis()));
@@ -86,10 +102,17 @@ public class ArenaController {
             stmt.setString(psId++, arena.getLatitude());
             stmt.setString(psId++, arena.getLongitude());
             stmt.setBoolean(psId++, arena.isActive());
+            stmt.setLong(psId++, arena.getArenaId());
+
 
             log.info("Rows affected: " + stmt.executeUpdate());
 
-        } catch (SQLException e) {
+            if(!Utility.nullOrEmpty(arena.getRounds())){
+                for(ArenaRound round : arena.getRounds()){
+                    ArenaRoundController.create(round);
+                }
+            }
+        } catch (SQLException | ArenaRoundException e) {
             throw new ArenaException(e.getMessage());
         }
     }
