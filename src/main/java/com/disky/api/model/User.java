@@ -15,6 +15,7 @@ public class User extends GenericModel{
     private String lastName;
     private String phoneNumber;
     private String password;
+    private String apiKey;
     private String imgKey;
 
     private List<UserLink> userLinks;
@@ -23,6 +24,18 @@ public class User extends GenericModel{
         this.userId = userId;
     }
 
+    public User(Long userId, String userName, String firstName, String lastName, String phoneNumber, String password, String apiKey, String imgKey) {
+        this.userId = userId;
+        this.userName = userName;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phoneNumber = phoneNumber;
+        this.password = password;
+        this.apiKey = apiKey;
+        this.imgKey = imgKey;
+    }
+
+    @Deprecated
     public User(Long userId, String userName, String firstName, String lastName, String phoneNumber, String password, String imgKey) {
         this.userId = userId;
         this.userName = userName;

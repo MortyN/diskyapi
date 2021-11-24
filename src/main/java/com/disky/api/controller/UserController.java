@@ -60,7 +60,7 @@ public class UserController {
                 fields += ", IMG_KEY";
                 values += ",?";
             }
-            String sql = "INSERT INTO users (USERNAME, FIRST_NAME, LAST_NAME, PHONE_NUMBER, PASSWORD" + fields +") values (?,?,?,?,?" + values + ")";
+            String sql = "INSERT INTO users (USERNAME, FIRST_NAME, LAST_NAME, PHONE_NUMBER, PASSWORD, API_KEY" + fields +") values (?,?,?,?,?,?" + values + ")";
 
             PreparedStatement stmt = conn.prepareStatement(sql);
 
@@ -69,6 +69,7 @@ public class UserController {
             stmt.setString(psId++, user.getLastName());
             stmt.setString(psId++, user.getPhoneNumber());
             stmt.setString(psId++, user.getPassword());
+            stmt.setString(psId++, user.getApiKey());
 
             if(file!= null){
                 stmt.setString(psId++, fileName);
