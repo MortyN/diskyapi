@@ -2,11 +2,17 @@ plugins {
     id 'org.springframework.boot' version '2.6.0-M3'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'java'
+    id 'war'
+    id 'application'
 }
 
 group = 'com.disky'
-version = '0.0.1-SNAPSHOT'
-sourceCompatibility = "17"
+version = '0.0.1'
+sourceCompatibility = "11"
+
+war {
+    archiveName = 'ROOT.war'
+}
 
 configurations {
     compileOnly {
@@ -42,4 +48,4 @@ dependencies {
 test {
     useJUnitPlatform()
 }
-targetCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_11
