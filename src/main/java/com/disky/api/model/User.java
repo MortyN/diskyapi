@@ -35,17 +35,6 @@ public class User extends GenericModel{
         this.imgKey = imgKey;
     }
 
-    @Deprecated
-    public User(Long userId, String userName, String firstName, String lastName, String phoneNumber, String password, String imgKey) {
-        this.userId = userId;
-        this.userName = userName;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phoneNumber = phoneNumber;
-        this.password = password;
-        this.imgKey = imgKey;
-    }
-
     public void addUserLink(UserLink link){
         if(!Utility.nullOrEmpty(this.userLinks)) this.userLinks = new ArrayList<>();
         this.userLinks.add(link);
@@ -53,7 +42,7 @@ public class User extends GenericModel{
 
     public static String getColumns(){
         return "users.USER_ID, users.USERNAME, users.FIRST_NAME, " +
-                "users.LAST_NAME, users.PHONE_NUMBER, users.PASSWORD, users.IMG_KEY ";
+                "users.LAST_NAME, users.PHONE_NUMBER, users.PASSWORD, users.API_KEY, users.IMG_KEY ";
     }
 
     @Override

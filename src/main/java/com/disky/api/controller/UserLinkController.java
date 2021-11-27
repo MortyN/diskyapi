@@ -179,8 +179,6 @@ public class UserLinkController {
 
             ResultSet res = stmt.executeQuery();
             while (res.next()) {
-                  //  User user_id_link1 = UserController.getOne(new User(res.getLong("USER_ID_LINK1")));
-                  // User user_id_link2 = UserController.getOne(new User(res.getLong("USER_ID_LINK2")));
                 UserLink link = new UserLink(
                         new User(
                                 res.getLong("USER_ID_LINK1"),
@@ -189,6 +187,7 @@ public class UserLinkController {
                                 res.getString("USER_LINKS1_LAST_NAME"),
                                 res.getString("USER_LINKS1_PHONE_NUMBER"),
                                 "************",
+                                null,
                                 res.getString("USER_LINKS1_IMG_KEY")
                         ),
                         new User(
@@ -198,6 +197,7 @@ public class UserLinkController {
                                 res.getString("USER_LINKS2_LAST_NAME"),
                                 res.getString("USER_LINKS2_PHONE_NUMBER"),
                                 "************",
+                                null,
                                 res.getString("USER_LINKS2_IMG_KEY")
                         ),
                         res.getInt("TYPE"),

@@ -68,7 +68,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             }
         });
         httpSecurity
-                .antMatcher("/api/**")
+                .antMatcher("/api/fiks/dette/hans")
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and().addFilter(filter).authorizeRequests().anyRequest().authenticated();
     }

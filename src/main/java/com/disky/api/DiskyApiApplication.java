@@ -16,5 +16,4 @@ public class DiskyApiApplication {
         SpringApplication.run(DiskyApiApplication.class, args);
         log.info("DiskyApi is now running...");
     }
-
 }

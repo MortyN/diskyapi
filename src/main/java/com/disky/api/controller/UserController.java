@@ -217,6 +217,7 @@ public class UserController {
                        res.getString("LAST_NAME"),
                        res.getString("PHONE_NUMBER"),
                        res.getString("PASSWORD"),
+                       res.getString("API_KEY"),
                        res.getString("IMG_KEY")
                );
 
@@ -278,6 +279,7 @@ public class UserController {
                        res.getString("LAST_NAME"),
                        res.getString("PHONE_NUMBER"),
                        res.getString("PASSWORD"),
+                       res.getString("API_KEY"),
                        res.getString("IMG_KEY")
                );
                userResult.add(user);
@@ -308,6 +310,7 @@ public class UserController {
                     res.getString("LAST_NAME"),
                     res.getString("PHONE_NUMBER"),
                     res.getString("PASSWORD"),
+                    res.getString("API_KEY"),
                     res.getString("IMG_KEY")
             );
         }else if(loggedInUser == null){
