@@ -2,6 +2,7 @@ package com.disky.api.controller;
 
 import com.disky.api.Exceptions.GetUserException;
 import com.disky.api.Exceptions.PostControllerException;
+import com.disky.api.Exceptions.ScoreCardException;
 import com.disky.api.Exceptions.UserLinkException;
 import com.disky.api.filter.PostFilter;
 import com.disky.api.filter.UserLinkFilter;
@@ -88,11 +89,13 @@ public class PostController {
                 }else{
                     post.setInteractions(new Interactions(null));
                 }
-
+                if(post.getType() == 2 && post.getScoreCard() != null && post.getScoreCard().getCardId() != 0L){
+                    post.setScoreCard(ScoreCardController.getOneScoreCard(post.getScoreCard().getCardId()));
+                }
             }
             log.info("Successfully retrieved: " + postResults.size() + " posts.");
             return postResults;
-        } catch (SQLException | GetUserException | UserLinkException e) {
+        } catch (SQLException | GetUserException | UserLinkException | ScoreCardException e) {
             throw new PostControllerException(e.getMessage());
         }
     }
@@ -125,7 +128,6 @@ public class PostController {
         } catch (SQLException e) {
             throw new PostControllerException(e.getMessage());
         }
-
     }
 
     public static void delete(Post post) throws PostControllerException {
