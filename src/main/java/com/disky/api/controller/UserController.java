@@ -9,20 +9,21 @@ import com.disky.api.model.User;
 import com.disky.api.util.DatabaseConnection;
 import com.disky.api.util.Utility;
 import com.disky.api.util.S3Util;
-import lombok.SneakyThrows;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class UserController {
-//TODO: Fix transaction and internal transaction logic
+    //TODO: Fix transaction and internal transaction logic
+    private static Map<Long, User> users = new HashMap<>();
 
-    
     public static void delete(User user) throws  GetUserException {
         String sql = "DELETE FROM users WHERE USER_ID = ?";
 
@@ -36,7 +37,7 @@ public class UserController {
             throw new GetUserException("Unabled to delete user");
         }
     }
-    
+
     public static void save(User user, MultipartFile file) throws GetUserException {
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
         String fileName = "";
@@ -81,7 +82,6 @@ public class UserController {
             throw new GetUserException(e.getMessage());
         }
     }
-    
     private static void update(User user, MultipartFile file) throws GetUserException, UserImageUploadException {
         String fileName = null;
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
@@ -123,12 +123,16 @@ public class UserController {
        }
     }
     protected static User getOne(User user) throws GetUserException {
+        User cachedUser = users.get(user.getUserId());
+        if(cachedUser != null) return cachedUser;
+
         UserFilter filter = new UserFilter();
         filter.addUserIds(user.getUserId());
         User rawUser = getOne(filter);
         if(rawUser != null){
             rawUser.setPassword("***********");
         }
+        users.put(rawUser.getUserId(), rawUser);
         return rawUser;
     }
 
@@ -142,7 +146,7 @@ public class UserController {
 
         return users.get(0);
     }
-    
+
     public static List<User> get(UserFilter filter) throws GetUserException {
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
         List<User> userResult = new ArrayList<>();
@@ -231,13 +235,12 @@ public class UserController {
            throw new GetUserException("Unable to get user");
        }
     }
-    
+
     public static List<User> search(String keyword) throws GetUserException {
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
         List<User> userResult = new ArrayList<>();
         boolean whereSet = false;
         String where = " WHERE ";
-
 
         if (keyword.startsWith("+") || keyword.matches("[0-9].*")) {
             where += " users.PHONE_NUMBER = ?";
