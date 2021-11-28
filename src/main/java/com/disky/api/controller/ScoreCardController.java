@@ -23,8 +23,6 @@ public class ScoreCardController {
             throw new ScoreCardException("User is required!");
 
         Logger log = Logger.getLogger(String.valueOf(ScoreCardController.class));
-        Connection conn = DatabaseConnection.getConnection();
-        try {
             int psId = 1;
 
             if (scoreCard.getCardId() != null && scoreCard.getCardId() != 0L) {
@@ -33,7 +31,10 @@ public class ScoreCardController {
             }else{
                 String sql = "INSERT INTO score_cards (ARENA_ROUND_ID, START_TS, CREATED_BY_USER_ID) values (?,?,?)";
 
-                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                try (Connection conn = DatabaseConnection.getConnection();
+                     PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                ){
+
                 if (scoreCard.getStartTs() == null) {
                     scoreCard.setStartTs(new Timestamp(System.currentTimeMillis()));
                 }
@@ -54,22 +55,23 @@ public class ScoreCardController {
                     scoreCard.getMembers().forEach((member) -> member.setScoreCard(new ScoreCard(scoreCard.getCardId())));
                     ScoreCardMemberController.create(scoreCard.getMembers());
                 }
+                } catch (SQLException | ArenaRoundException | GetUserException | ScoreCardMemberException e) {
+                    throw new ScoreCardException(e.getMessage());
+                }
             }
-
-        } catch (SQLException | ArenaRoundException | GetUserException | ScoreCardMemberException e) {
-            throw new ScoreCardException(e.getMessage());
-        }
     }
 
-    private static void update(ScoreCard scoreCard) throws ScoreCardException, SQLException {
+    private static void update(ScoreCard scoreCard) throws ScoreCardException {
         Logger log = Logger.getLogger(String.valueOf(ScoreCardController.class));
-        Connection conn = DatabaseConnection.getConnection();
-        try {
+        String sql = "UPDATE score_cards SET END_TS = ? WHERE CARD_ID = ?";
+
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+        ){
             int psId = 1;
 
-            String sql = "UPDATE score_cards SET END_TS = ? WHERE CARD_ID = ?";
             Timestamp ts = new Timestamp(System.currentTimeMillis());
-            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setTimestamp(psId++, ts);
             stmt.setLong(psId++, scoreCard.getCardId());
 
@@ -81,10 +83,9 @@ public class ScoreCardController {
         }
     }
 
-    public static List<ScoreCard> getScoreCard(ScoreCardFilter filter) throws ScoreCardException, SQLException, GetUserException {
+    public static List<ScoreCard> getScoreCard(ScoreCardFilter filter) throws ScoreCardException, GetUserException {
         List<ScoreCard> result = new ArrayList<>();
         Logger log = Logger.getLogger(String.valueOf(ScoreCardController.class));
-        Connection conn = DatabaseConnection.getConnection();
         int psId = 1;
         String where = "";
 
@@ -115,115 +116,119 @@ public class ScoreCardController {
                                     " INNER JOIN arena_rounds_hole ar on score_card_result.ARENA_ROUND_HOLE_ID = ar.ARENA_ROUND_HOLE_ID " +
                         " WHERE 1=1 AND " + where;
 
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            log.info(stmt.toString());
+            try(Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql);
+            ){
+                log.info(stmt.toString());
 
-            if(filter.getMember() != null && filter.getMember().getUserId() != null && !filter.getMember().getUserId().equals(0l)){
-                stmt.setLong(psId++, filter.getMember().getUserId());
-            }
-
-            if(filter.getScoreCardId() != null && !filter.getScoreCardId().equals(0l)){
-                stmt.setLong(psId++, filter.getScoreCardId());
-            }
-
-
-            log.info(stmt.toString());
-
-            ResultSet rs = stmt.executeQuery();
-            ScoreCard scoreCard = null;
-            ScoreCardMember member = null;
-
-            while(rs.next()){
-                Long cardId = rs.getLong("SCORE_CARDS_CARD_ID");
-                if(!Utility.listContainsPrimaryKey(result, cardId)){
-                    Arena arena = new Arena(
-                            rs.getLong("ARENA_ARENA_ID"),
-                            rs.getString("ARENA_NAME"),
-                            rs.getString("ARENA_DESCRIPTION"),
-                            rs.getTimestamp("ARENA_ESTABLISHED"),
-                            new User(rs.getLong("ARENA_CREATED_BY_USER_ID")),
-                            rs.getTimestamp("ARENA_CREATED_TS"),
-                            rs.getTimestamp("ARENA_MODIFIED_TS"),
-                            rs.getString("ARENA_LATITUDE"),
-                            rs.getString("ARENA_LONGITUDE"),
-                            rs.getBoolean("ARENA_ACTIVE")
-                    );
-
-                    ArenaRound arenaRound = new ArenaRound(
-                            rs.getLong("ARENA_ROUNDS_ARENA_ROUND_ID"),
-                            arena,
-                            rs.getInt("ARENA_ROUNDS_HOLE_AMOUNT"),
-                            rs.getBoolean("ARENA_ROUNDS_PAYMENT"),
-                            rs.getString("ARENA_ROUNDS_DESCRIPTION"),
-                            new User(rs.getLong("ARENA_ROUNDS_CREATED_BY_USER_ID")),
-                            rs.getTimestamp("ARENA_ROUNDS_CREATED_TS"),
-                            rs.getTimestamp("ARENA_ROUNDS_MODIFIED_TS"),
-                            rs.getBoolean("ARENA_ROUNDS_ACTIVE")
-                    );
-
-                    scoreCard = new ScoreCard(
-                            cardId,
-                            arenaRound,
-                            rs.getTimestamp("SCORE_CARDS_START_TS"),
-                            rs.getTimestamp("SCORE_CARDS_END_TS"),
-                            new User(rs.getLong("SCORE_CARDS_CREATED_BY_USER"))
-                    );
-                    result.add(scoreCard);
+                if(filter.getMember() != null && filter.getMember().getUserId() != null && !filter.getMember().getUserId().equals(0l)){
+                    stmt.setLong(psId++, filter.getMember().getUserId());
                 }
 
-                long arenaRoundHole = rs.getLong("ARENA_ROUNDS_HOLE_ARENA_ROUND_HOLE_ID");
-                if(!Utility.listContainsPrimaryKey(scoreCard.getArenaRound().getHoles(), arenaRoundHole)){
-                    scoreCard.getArenaRound().addHoles(new ArenaRoundHole(
-                            rs.getLong("ARENA_ROUNDS_HOLE_ARENA_ROUND_HOLE_ID"),
-                            new ArenaRound(rs.getLong("ARENA_ROUNDS_HOLE_ARENA_ROUND_ID")),
-                            rs.getString("ARENA_ROUNDS_HOLE_HOLE_NAME"),
-                            rs.getInt("ARENA_ROUNDS_HOLE_PAR_VALUE"),
-                            rs.getBoolean("ARENA_ROUNDS_HOLE_ACTIVE"),
-                            rs.getString("ARENA_ROUNDS_HOLE_START_LATITUDE"),
-                            rs.getString("ARENA_ROUNDS_HOLE_START_LONGITUDE"),
-                            rs.getString("ARENA_ROUNDS_HOLE_END_LATITUDE"),
-                            rs.getString("ARENA_ROUNDS_HOLE_END_LONGITUDE"),
-                            rs.getInt("ARENA_ROUNDS_HOLE_ORDER")
-                    ));
+                if(filter.getScoreCardId() != null && !filter.getScoreCardId().equals(0l)){
+                    stmt.setLong(psId++, filter.getScoreCardId());
                 }
 
-                Long scoreCardMemberId =  rs.getLong("SCORE_CARD_MEMBERS_SCORE_CARD_MEMBER_ID");
-                if(!Utility.listContainsPrimaryKey(scoreCard.getMembers(), scoreCardMemberId)){
-                    member = new ScoreCardMember(
-                            rs.getLong("SCORE_CARD_MEMBERS_SCORE_CARD_MEMBER_ID"),
-                            UserController.getOne(new User(rs.getLong("SCORE_CARD_MEMBERS_USER_ID"))),
-                            new ScoreCard(cardId)
-                    );
-                    scoreCard.addMember(member);
-                }
-                ScoreCardResult scoreCardResult = new ScoreCardResult(
-                        new ScoreCardMember(rs.getLong("RESULT_SCORE_CARD_MEMBER_ID")),
-                        new ArenaRoundHole( rs.getLong("RESULT_SCORE_CARD_HOLE_ID")),
-                        rs.getInt("RESULT_SCORE_VALUE"));
+                log.info(stmt.toString());
 
-                ScoreCardMember currentScoreCardMember = scoreCard.getMembers().stream()
-                        .filter(m -> m.getScoreCardMemberId().equals(scoreCardResult.getScoreCardMember().getScoreCardMemberId()))
-                        .findAny()
-                        .orElse(null);
+                ResultSet rs = stmt.executeQuery();
+                ScoreCard scoreCard = null;
+                ScoreCardMember member = null;
 
-                if(Utility.nullOrEmpty(currentScoreCardMember.getResults()) || !currentScoreCardMember.getResults().stream().anyMatch( o -> o.getScoreCardMember().getScoreCardMemberId().equals(scoreCardResult.getScoreCardMember().getScoreCardMemberId()) && o.getArenaRoundHole().getArenaRoundHoleId().equals(scoreCardResult.getArenaRoundHole().getArenaRoundHoleId()))){
-                   if(scoreCardResult.getScoreCardMember() != null){
-                       ArenaRoundHole arenaRoundHoleResult = new ArenaRoundHole(
-                               rs.getLong("AR_ARENA_ROUND_HOLE_ID"),
-                               new ArenaRound(rs.getLong("AR_ARENA_ROUND_ID")),
-                               rs.getString("AR_HOLE_NAME"),
-                               rs.getInt("AR_PAR_VALUE"),
-                               rs.getBoolean("AR_ACTIVE"),
-                               rs.getString("AR_START_LATITUDE"),
-                               rs.getString("AR_START_LONGITUDE"),
-                               rs.getString("AR_END_LATITUDE"),
-                               rs.getString("AR_LONGITUDE"),
-                               rs.getInt("AR_ORDER")
-                       );
-                       scoreCardResult.setArenaRoundHole(arenaRoundHoleResult);
-                       currentScoreCardMember.addResult(scoreCardResult);
-                   }
+                while(rs.next()){
+                    Long cardId = rs.getLong("SCORE_CARDS_CARD_ID");
+                    if(!Utility.listContainsPrimaryKey(result, cardId)){
+                        Arena arena = new Arena(
+                                rs.getLong("ARENA_ARENA_ID"),
+                                rs.getString("ARENA_NAME"),
+                                rs.getString("ARENA_DESCRIPTION"),
+                                rs.getTimestamp("ARENA_ESTABLISHED"),
+                                new User(rs.getLong("ARENA_CREATED_BY_USER_ID")),
+                                rs.getTimestamp("ARENA_CREATED_TS"),
+                                rs.getTimestamp("ARENA_MODIFIED_TS"),
+                                rs.getString("ARENA_LATITUDE"),
+                                rs.getString("ARENA_LONGITUDE"),
+                                rs.getBoolean("ARENA_ACTIVE")
+                        );
+
+                        ArenaRound arenaRound = new ArenaRound(
+                                rs.getLong("ARENA_ROUNDS_ARENA_ROUND_ID"),
+                                arena,
+                                rs.getInt("ARENA_ROUNDS_HOLE_AMOUNT"),
+                                rs.getBoolean("ARENA_ROUNDS_PAYMENT"),
+                                rs.getString("ARENA_ROUNDS_DESCRIPTION"),
+                                new User(rs.getLong("ARENA_ROUNDS_CREATED_BY_USER_ID")),
+                                rs.getTimestamp("ARENA_ROUNDS_CREATED_TS"),
+                                rs.getTimestamp("ARENA_ROUNDS_MODIFIED_TS"),
+                                rs.getBoolean("ARENA_ROUNDS_ACTIVE")
+                        );
+
+                        scoreCard = new ScoreCard(
+                                cardId,
+                                arenaRound,
+                                rs.getTimestamp("SCORE_CARDS_START_TS"),
+                                rs.getTimestamp("SCORE_CARDS_END_TS"),
+                                new User(rs.getLong("SCORE_CARDS_CREATED_BY_USER"))
+                        );
+                        result.add(scoreCard);
+                    }
+
+                    long arenaRoundHole = rs.getLong("ARENA_ROUNDS_HOLE_ARENA_ROUND_HOLE_ID");
+                    if(!Utility.listContainsPrimaryKey(scoreCard.getArenaRound().getHoles(), arenaRoundHole)){
+                        scoreCard.getArenaRound().addHoles(new ArenaRoundHole(
+                                rs.getLong("ARENA_ROUNDS_HOLE_ARENA_ROUND_HOLE_ID"),
+                                new ArenaRound(rs.getLong("ARENA_ROUNDS_HOLE_ARENA_ROUND_ID")),
+                                rs.getString("ARENA_ROUNDS_HOLE_HOLE_NAME"),
+                                rs.getInt("ARENA_ROUNDS_HOLE_PAR_VALUE"),
+                                rs.getBoolean("ARENA_ROUNDS_HOLE_ACTIVE"),
+                                rs.getString("ARENA_ROUNDS_HOLE_START_LATITUDE"),
+                                rs.getString("ARENA_ROUNDS_HOLE_START_LONGITUDE"),
+                                rs.getString("ARENA_ROUNDS_HOLE_END_LATITUDE"),
+                                rs.getString("ARENA_ROUNDS_HOLE_END_LONGITUDE"),
+                                rs.getInt("ARENA_ROUNDS_HOLE_ORDER")
+                        ));
+                    }
+
+                    Long scoreCardMemberId =  rs.getLong("SCORE_CARD_MEMBERS_SCORE_CARD_MEMBER_ID");
+                    if(!Utility.listContainsPrimaryKey(scoreCard.getMembers(), scoreCardMemberId)){
+                        member = new ScoreCardMember(
+                                rs.getLong("SCORE_CARD_MEMBERS_SCORE_CARD_MEMBER_ID"),
+                                UserController.getOne(new User(rs.getLong("SCORE_CARD_MEMBERS_USER_ID"))),
+                                new ScoreCard(cardId)
+                        );
+                        scoreCard.addMember(member);
+                    }
+                    ScoreCardResult scoreCardResult = new ScoreCardResult(
+                            new ScoreCardMember(rs.getLong("RESULT_SCORE_CARD_MEMBER_ID")),
+                            new ArenaRoundHole( rs.getLong("RESULT_SCORE_CARD_HOLE_ID")),
+                            rs.getInt("RESULT_SCORE_VALUE"));
+
+                    ScoreCardMember currentScoreCardMember = scoreCard.getMembers().stream()
+                            .filter(m -> m.getScoreCardMemberId().equals(scoreCardResult.getScoreCardMember().getScoreCardMemberId()))
+                            .findAny()
+                            .orElse(null);
+
+                    if(Utility.nullOrEmpty(currentScoreCardMember.getResults()) || !currentScoreCardMember.getResults().stream().anyMatch( o -> o.getScoreCardMember().getScoreCardMemberId().equals(scoreCardResult.getScoreCardMember().getScoreCardMemberId()) && o.getArenaRoundHole().getArenaRoundHoleId().equals(scoreCardResult.getArenaRoundHole().getArenaRoundHoleId()))){
+                       if(scoreCardResult.getScoreCardMember() != null){
+                           ArenaRoundHole arenaRoundHoleResult = new ArenaRoundHole(
+                                   rs.getLong("AR_ARENA_ROUND_HOLE_ID"),
+                                   new ArenaRound(rs.getLong("AR_ARENA_ROUND_ID")),
+                                   rs.getString("AR_HOLE_NAME"),
+                                   rs.getInt("AR_PAR_VALUE"),
+                                   rs.getBoolean("AR_ACTIVE"),
+                                   rs.getString("AR_START_LATITUDE"),
+                                   rs.getString("AR_START_LONGITUDE"),
+                                   rs.getString("AR_END_LATITUDE"),
+                                   rs.getString("AR_LONGITUDE"),
+                                   rs.getInt("AR_ORDER")
+                           );
+                           scoreCardResult.setArenaRoundHole(arenaRoundHoleResult);
+                           currentScoreCardMember.addResult(scoreCardResult);
+                       }
+                    }
                 }
+            } catch (SQLException e){
+                throw new ScoreCardException(e.getMessage());
             }
             return result;
     }

@@ -24,32 +24,26 @@ public class UserController {
 
     @SneakyThrows
     public static void delete(User user) throws  GetUserException {
-        Connection conn = DatabaseConnection.getConnection();
-        try {
-            Logger log = Logger.getLogger(String.valueOf(UserController.class));
+        String sql = "DELETE FROM users WHERE USER_ID = ?";
 
-            String sql = "DELETE FROM users WHERE USER_ID = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+        ){
             stmt.setLong(1, user.getUserId());
             stmt.executeUpdate();
-
             UserLinkController.deleteAll(user);
         } catch (UserLinkException | SQLException e) {
             throw new GetUserException("Unabled to delete user");
         }
-        //TODO: Slett fra alle andre tabeller også
     }
     @SneakyThrows
     public static void save(User user, MultipartFile file) throws GetUserException {
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
-        Connection conn = DatabaseConnection.getConnection();
         String fileName = "";
-        try {
-            int psId = 1;
-            String fields= "";
-            String values ="";
+        String fields= "";
+        String values ="";
 
+        try{
             if(user.getUserId() != null && user.getUserId() != 0L) {
                 update(user,file);
                 return;
@@ -61,10 +55,15 @@ public class UserController {
                 fields += ", IMG_KEY";
                 values += ",?";
             }
-            String sql = "INSERT INTO users (USERNAME, FIRST_NAME, LAST_NAME, PHONE_NUMBER, PASSWORD, API_KEY" + fields +") values (?,?,?,?,?,?" + values + ")";
+        } catch (UserImageUploadException e) {
+            throw new GetUserException(e.getMessage(), e);
+        }
 
-            PreparedStatement stmt = conn.prepareStatement(sql);
-
+        String sql = "INSERT INTO users (USERNAME, FIRST_NAME, LAST_NAME, PHONE_NUMBER, PASSWORD, API_KEY" + fields +") values (?,?,?,?,?,?" + values + ")";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+        ){
+            int psId = 1;
             stmt.setString(psId++, user.getUserName());
             stmt.setString(psId++, user.getFirstName());
             stmt.setString(psId++, user.getLastName());
@@ -78,33 +77,33 @@ public class UserController {
 
             log.info("Rows affected: " + stmt.executeUpdate());
 
-        } catch (SQLException | UserImageUploadException e) {
+        } catch (SQLException  e) {
             throw new GetUserException(e.getMessage());
         }
-
     }
     @SneakyThrows
     private static void update(User user, MultipartFile file) throws GetUserException, UserImageUploadException {
         String fileName = null;
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
-        Connection conn = DatabaseConnection.getConnection();
-       try {
+        String fields= "";
+
+        if(file != null){
+            SecureRandom random = new SecureRandom();
+            fileName = new BigInteger(130, random).toString(32);
+            S3Util.s3UploadPhoto(file, fileName);
+            fields += ", IMG_KEY = ?";
+
+            if(user.getImgKey() != null){
+                S3Util.s3DeletePhoto(user.getImgKey());
+            }
+        }
+        String sql = "UPDATE users SET FIRST_NAME = ?, LAST_NAME = ?, PHONE_NUMBER = ?" + fields + " WHERE USER_ID = ?";
+
+       try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+       ) {
            int psId = 1;
-           String fields= "";
 
-           if(file != null){
-               SecureRandom random = new SecureRandom();
-               fileName = new BigInteger(130, random).toString(32);
-               S3Util.s3UploadPhoto(file, fileName);
-               fields += ", IMG_KEY = ?";
-
-               if(user.getImgKey() != null){
-                   S3Util.s3DeletePhoto(user.getImgKey());
-               }
-           }
-           String sql = "UPDATE users SET FIRST_NAME = ?, LAST_NAME = ?, PHONE_NUMBER = ?" + fields + " WHERE USER_ID = ?";
-
-           PreparedStatement stmt = conn.prepareStatement(sql);
            stmt.setString(psId++, user.getFirstName());
            stmt.setString(psId++, user.getLastName());
            stmt.setString(psId++, user.getPhoneNumber());
@@ -120,9 +119,6 @@ public class UserController {
        } catch (SQLException  e) {
            log.warning("Failed to update image in DB, rollback upload.");
            S3Util.s3DeletePhoto(fileName);
-           throw new GetUserException(e.getMessage());
-       }
-       catch(UserImageUploadException e){
            throw new GetUserException(e.getMessage());
        }
     }
@@ -150,33 +146,32 @@ public class UserController {
     public static List<User> get(UserFilter filter) throws GetUserException {
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
         List<User> userResult = new ArrayList<>();
+        String where = "WHERE 1=1 ";
 
-        Connection conn = DatabaseConnection.getConnection();
+        if (!Utility.nullOrEmpty(filter.getUserIds())) {
+            where += " AND users.USER_ID in ( " + Utility.listAsQuestionMarks(filter.getUserIds()) + ")";
+        }
 
-       try {
-           String where = "WHERE 1=1 ";
+        if (!Utility.nullOrEmpty(filter.getUserNames())) {
+            where += " AND users.USERNAME in ( " + Utility.listAsQuestionMarks(filter.getUserNames()) + ")";
+        }
 
-           if (!Utility.nullOrEmpty(filter.getUserIds())) {
-               where += " AND users.USER_ID in ( " + Utility.listAsQuestionMarks(filter.getUserIds()) + ")";
-           }
+        if (!Utility.nullOrEmpty(filter.getFirstNames())) {
+            where += " AND users.FIRST_NAME in ( " + Utility.listAsQuestionMarks(filter.getFirstNames()) + ")";
+        }
 
-           if (!Utility.nullOrEmpty(filter.getUserNames())) {
-               where += " AND users.USERNAME in ( " + Utility.listAsQuestionMarks(filter.getUserNames()) + ")";
-           }
+        if (!Utility.nullOrEmpty(filter.getLastNames())) {
+            where += " AND users.LAST_NAME in ( " + Utility.listAsQuestionMarks(filter.getLastNames()) + ")";
+        }
 
-           if (!Utility.nullOrEmpty(filter.getFirstNames())) {
-               where += " AND users.FIRST_NAME in ( " + Utility.listAsQuestionMarks(filter.getFirstNames()) + ")";
-           }
+        if (!Utility.nullOrEmpty(filter.getPhoneNumbers())) {
+            where += " AND users.PHONE_NUMBER in ( " + Utility.listAsQuestionMarks(filter.getPhoneNumbers()) + ")";
+        }
+        String sql = "SELECT " + User.getColumns() + " FROM users " + where ;
 
-           if (!Utility.nullOrEmpty(filter.getLastNames())) {
-               where += " AND users.LAST_NAME in ( " + Utility.listAsQuestionMarks(filter.getLastNames()) + ")";
-           }
-
-           if (!Utility.nullOrEmpty(filter.getPhoneNumbers())) {
-               where += " AND users.PHONE_NUMBER in ( " + Utility.listAsQuestionMarks(filter.getPhoneNumbers()) + ")";
-           }
-           String sql = "SELECT " + User.getColumns() + " FROM users " + where ;
-           PreparedStatement stmt = conn.prepareStatement(sql);
+       try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+       ){
            int psId = 1;
 
            if (!Utility.nullOrEmpty(filter.getUserIds())) {
@@ -228,7 +223,6 @@ public class UserController {
                if (filter.isGetUserLinks()) {
                    UserLinkFilter userLinkFilter = new UserLinkFilter();
                    userLinkFilter.setUser(user);
-                   //Join in later
                    user.setUserLinks(UserLinkController.getUserLinks(userLinkFilter));
                }
            }
@@ -242,24 +236,23 @@ public class UserController {
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
         List<User> userResult = new ArrayList<>();
         boolean whereSet = false;
-        Connection conn = DatabaseConnection.getConnection();
-
-       try {
-           String where = " WHERE ";
+        String where = " WHERE ";
 
 
-           if (keyword.startsWith("+") || keyword.matches("[0-9].*")) {
-               where += " users.PHONE_NUMBER = ?";
-               whereSet = true;
-           }
+        if (keyword.startsWith("+") || keyword.matches("[0-9].*")) {
+            where += " users.PHONE_NUMBER = ?";
+            whereSet = true;
+        }
 
-           if (keyword.chars().allMatch(Character::isLetter)) {
-               where += whereSet ? " OR users.FIRST_NAME like ? OR users.LAST_NAME like ?" : "users.FIRST_NAME like ? OR users.LAST_NAME like ?";
-               whereSet = true;
-           }
+        if (keyword.chars().allMatch(Character::isLetter)) {
+            where += whereSet ? " OR users.FIRST_NAME like ? OR users.LAST_NAME like ?" : "users.FIRST_NAME like ? OR users.LAST_NAME like ?";
+        }
 
-           String sql = "SELECT " + User.getColumns() + "FROM users " + where;
-           PreparedStatement stmt = conn.prepareStatement(sql);
+        String sql = "SELECT " + User.getColumns() + "FROM users " + where;
+       try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+       ){
+
            int psId = 1;
 
            if (keyword.startsWith("+") || keyword.matches("[0-9].*")) {
@@ -292,32 +285,35 @@ public class UserController {
            throw new GetUserException("Unable to get user");
        }
     }
-    //TODO:  Make this real
-    public static User authUser(String userName, String password) throws SQLException, GetUserException {
+    public static User authUser(String userName, String password) throws GetUserException {
         User loggedInUser = null;
-        Connection conn = DatabaseConnection.getConnection();
         String select = "SELECT * FROM users WHERE USERNAME = ? AND PASSWORD = ? ";
 
-        PreparedStatement stmt = conn.prepareStatement(select);
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(select);
+        ){
+            stmt.setString(1,userName);
+            stmt.setString(2,password);
 
-        stmt.setString(1,userName);
-        stmt.setString(2,password);
-
-        ResultSet res = stmt.executeQuery();
-        if(res.next()){
-            loggedInUser = new User(
-                    res.getLong("USER_ID"),
-                    res.getString("USERNAME"),
-                    res.getString("FIRST_NAME"),
-                    res.getString("LAST_NAME"),
-                    res.getString("PHONE_NUMBER"),
-                    res.getString("PASSWORD"),
-                    res.getString("API_KEY"),
-                    res.getString("IMG_KEY")
-            );
-        }else if(loggedInUser == null){
-            throw new GetUserException("Wrong combination");
+            ResultSet res = stmt.executeQuery();
+            if(res.next()){
+                loggedInUser = new User(
+                        res.getLong("USER_ID"),
+                        res.getString("USERNAME"),
+                        res.getString("FIRST_NAME"),
+                        res.getString("LAST_NAME"),
+                        res.getString("PHONE_NUMBER"),
+                        res.getString("PASSWORD"),
+                        res.getString("API_KEY"),
+                        res.getString("IMG_KEY")
+                );
+            }else if(loggedInUser == null){
+                throw new GetUserException("Wrong combination");
+            }
+        } catch(SQLException e){
+            throw new GetUserException(e.getMessage());
         }
+
         return loggedInUser;
     };
 }

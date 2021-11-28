@@ -21,12 +21,12 @@ public class ArenaController {
 
     @SneakyThrows
     public static void delete(Arena arena) throws ArenaException {
-        Connection conn = DatabaseConnection.getConnection();
-        try {
-            Logger log = Logger.getLogger(String.valueOf(ArenaController.class));
+        Logger log = Logger.getLogger(String.valueOf(ArenaController.class));
+        String sql = "UPDATE arena SET ACTIVE = ?, MODIFIED_TS = ? WHERE ARENA_ID = ? ";
 
-            String sql = "UPDATE arena SET ACTIVE = ?, MODIFIED_TS = ? WHERE ARENA_ID = ? ";
-            PreparedStatement stmt = conn.prepareStatement(sql);
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)){
+
             stmt.setBoolean(1, false);
             stmt.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
             stmt.setLong(3, arena.getArenaId());
@@ -42,17 +42,18 @@ public class ArenaController {
     @SneakyThrows
     public static Arena create(Arena arena) throws ArenaException{
         Logger log = Logger.getLogger(String.valueOf(ArenaController.class));
-        Connection conn = DatabaseConnection.getConnection();
-        try {
+        String sql = "INSERT INTO arena (NAME, DESCRIPTION, CREATED_BY_USER_ID, CREATED_TS, MODIFIED_TS, LONGITUDE, LATITUDE, ACTIVE) VALUES (?,?,?,?,?,?,?,?)";
+
+
             int psId = 1;
             if (arena.getArenaId() != null && !arena.getArenaId().equals(0L)){
                 update(arena);
 
                 return arena;
             }
-            String sql = "INSERT INTO arena (NAME, DESCRIPTION, CREATED_BY_USER_ID, CREATED_TS, MODIFIED_TS, LONGITUDE, LATITUDE, ACTIVE) VALUES (?,?,?,?,?,?,?,?)";
-
-            PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        ){
             arena.setCreatedTs(new Timestamp(System.currentTimeMillis()));
             arena.setUpdateTs(arena.getCreatedTs());
             arena.setActive(true);
@@ -73,7 +74,7 @@ public class ArenaController {
                 arena.setArenaId(rs.getLong(1));
             }
 
-            if(Utility.nullOrEmpty(arena.getRounds())){
+            if(!Utility.nullOrEmpty(arena.getRounds())){
                 for(ArenaRound round : arena.getRounds()){
                     ArenaRoundController.create(round);
                 }
@@ -87,13 +88,14 @@ public class ArenaController {
     @SneakyThrows
     private static void update(Arena arena) throws ArenaException {
         Logger log = Logger.getLogger(String.valueOf(ArenaController.class));
-        Connection conn = DatabaseConnection.getConnection();
-        try {
+        String sql = "UPDATE arena SET NAME = ?, DESCRIPTION = ?, ESTABLISHED = ?, MODIFIED_TS = ?, LATITUDE = ?, LONGITUDE = ?, ACTIVE = ? WHERE ARENA_ID = ? ";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+        ){
             int psId = 1;
 
-            String sql = "UPDATE arena SET NAME = ?, DESCRIPTION = ?, ESTABLISHED = ?, MODIFIED_TS = ?, LATITUDE = ?, LONGITUDE = ?, ACTIVE = ? WHERE ARENA_ID = ? ";
 
-            PreparedStatement stmt = conn.prepareStatement(sql);
             arena.setUpdateTs(new Timestamp(System.currentTimeMillis()));
 
             stmt.setString(psId++, arena.getArenaName());
@@ -130,11 +132,10 @@ public class ArenaController {
         Logger log = Logger.getLogger(String.valueOf(ArenaController.class));
         List<Arena> arenaResult = new ArrayList<>();
 
-        Connection conn = DatabaseConnection.getConnection();
         String leftJoin = "";
         String fields = Arena.getColumns();
 
-        try {
+
             String where = "WHERE arena.ACTIVE = ?  ";
 
             if (!Utility.nullOrEmpty(filter.getArenaIds())) {
@@ -155,7 +156,10 @@ public class ArenaController {
             }
 
             String sql = "SELECT " + fields + " FROM arena " + leftJoin +  where;
-            PreparedStatement stmt = conn.prepareStatement(sql);
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+        ){
             int psId = 1;
 
             stmt.setBoolean(psId++, filter.isActive());

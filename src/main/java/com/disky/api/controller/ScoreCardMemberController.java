@@ -17,13 +17,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class ScoreCardMemberController {
-    //TODO: Make a filter - Done
-    //TODO: Make an exceptionHandler - Done
-    //TODO: DELTE - Potentially not something we want to do.
-    //TODO: SAVE - Done
-    //TODO: UPDATE - Not needed. We won't be updating the IDs?
-    //TODO: GET -
-
     public static void create(List<ScoreCardMember> scoreCardMembers) throws ScoreCardMemberException {
         for (ScoreCardMember member : scoreCardMembers){
             create(member);
@@ -32,12 +25,13 @@ public class ScoreCardMemberController {
     @SneakyThrows
     public static void create(ScoreCardMember scoreCardMember) throws ScoreCardMemberException{
         Logger log = Logger.getLogger(String.valueOf(ScoreCardMemberController.class));
-        Connection conn = DatabaseConnection.getConnection();
-        try {
-            int psId = 1;
+        String sql = "INSERT INTO score_card_members (USER_ID, CARD_ID) VALUES (?, ?)";
 
-            String sql = "INSERT INTO score_card_members (USER_ID, CARD_ID) VALUES (?, ?)";
-            PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+        ){
+            int psId = 1;
 
             stmt.setLong(psId++, scoreCardMember.getUser().getUserId());
             stmt.setLong(psId++, scoreCardMember.getScoreCard().getCardId());
@@ -79,24 +73,22 @@ public class ScoreCardMemberController {
         Logger log = Logger.getLogger(String.valueOf(ScoreCardMemberController.class));
         List<ScoreCardMember> scoreCardMemberResult = new ArrayList<>();
 
-        Connection conn = DatabaseConnection.getConnection();
         int psId = 1;
+        String where = "WHERE 1=1 ";
+        if (filter.getScoreCardMemberId() != null){
+            where+= " AND score_card_members.SCORE_CARD_MEMBER_ID = ?";
+        }
+        if (filter.getUser() != null && filter.getUser().getUserId() != 0){
+            where += " AND score_card_members.USER_ID = ?";
+        }
+        if (filter.getScoreCard() != null && filter.getScoreCard().getCardId() != 0){
+            where += " AND score_card_members.CARD_ID = ?";
+        }
 
-        try {
-            String where = "WHERE 1=1 ";
-            if (filter.getScoreCardMemberId() != null){
-                where+= " AND score_card_members.SCORE_CARD_MEMBER_ID = ?";
-            }
-            if (filter.getUser() != null && filter.getUser().getUserId() != 0){
-                where += " AND score_card_members.USER_ID = ?";
-            }
-            if (filter.getScoreCard() != null && filter.getScoreCard().getCardId() != 0){
-                where += " AND score_card_members.CARD_ID = ?";
-            }
-
-            String sql = "SELECT * " + where;
-            PreparedStatement stmt = conn.prepareStatement(sql);
-
+        String sql = "SELECT * " + where;
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+        ){
             stmt.setLong(psId++, filter.getScoreCardMemberId());
             stmt.setLong(psId++, filter.getUser().getUserId());
             stmt.setLong(psId++, filter.getScoreCard().getCardId());

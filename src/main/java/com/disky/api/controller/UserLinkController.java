@@ -51,14 +51,14 @@ public class UserLinkController {
     }
     public static void create(UserLink link) throws UserLinkException {
         Logger log = Logger.getLogger(String.valueOf(UserLinkController.class));
-      try {
           link.setCreatedTimeStamp(new Timestamp(System.currentTimeMillis()));
-          Connection conn = DatabaseConnection.getConnection();
           int psId = 1;
 
           String sql = "INSERT INTO user_links (USER_ID_LINK1, USER_ID_LINK2, TYPE ) values (?,?,?)";
 
-          PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        ){
           stmt.setLong(psId++, link.getUserLink1().getUserId());
           stmt.setLong(psId++, link.getUserLink2().getUserId());
           stmt.setInt(psId++, link.getType());
@@ -74,23 +74,24 @@ public class UserLinkController {
     }
 
     public static int update(UserLink link) throws UserLinkException {
-        try {
             if (link.getUserLink1() == null || link.getUserLink1().getUserId() == 0L ||
                     link.getUserLink2() == null || link.getUserLink2().getUserId() == 0L)
                 throw new UserLinkException("link1 and link2 must be given!");
             Logger log = Logger.getLogger(String.valueOf(UserLinkController.class));
-            Connection conn = DatabaseConnection.getConnection();
 
             int psId = 1;
             String sql = "UPDATE user_links SET TYPE = ? WHERE USER_ID_LINK1 = ? and USER_ID_LINK2 = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+        ){
+
             stmt.setLong(psId++, link.getType());
             stmt.setLong(psId++, link.getUserLink1().getUserId());
             stmt.setLong(psId++, link.getUserLink2().getUserId());
 
             log.info("Rows affected: " + stmt.executeUpdate());
             return stmt.executeUpdate();
-        } catch (SQLException | UserLinkException e) {
+        } catch (SQLException  e) {
             throw new UserLinkException(e.getMessage());
         }
     }
@@ -98,12 +99,11 @@ public class UserLinkController {
         if (link.getUserLink1() == null || link.getUserLink1().getUserId() == 0L ||
                 link.getUserLink2() == null || link.getUserLink2().getUserId() == 0L)
             throw new UserLinkException("link1 and link2 must be given when deleting link!");
-        try {
-            Logger log = Logger.getLogger(String.valueOf(UserLinkController.class));
-            Connection conn = DatabaseConnection.getConnection();
-            String sql = "DELETE FROM user_links WHERE USER_ID_LINK1 = ? AND USER_ID_LINK2 = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
+        String sql = "DELETE FROM user_links WHERE USER_ID_LINK1 = ? AND USER_ID_LINK2 = ?";
 
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+        ){
             stmt.setLong(1, link.getUserLink1().getUserId());
             stmt.setLong(2, link.getUserLink2().getUserId());
 
@@ -114,14 +114,14 @@ public class UserLinkController {
     }
 
     protected static void deleteAll(User user) throws UserLinkException {
-        Logger log = Logger.getLogger(String.valueOf(UserLinkController.class));
         if (user == null  || user.getUserId() == 0L) {
             throw new UserLinkException("User is required");
         }
-        try {
-            Connection conn = DatabaseConnection.getConnection();
-            String sql = "DELETE FROM user_links WHERE USER_ID_LINK1 = ? OR USER_ID_LINK2 = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
+        String sql = "DELETE FROM user_links WHERE USER_ID_LINK1 = ? OR USER_ID_LINK2 = ?";
+
+        try ( Connection conn = DatabaseConnection.getConnection();
+              PreparedStatement stmt = conn.prepareStatement(sql);)
+            {
 
             stmt.setLong(1, user.getUserId());
             stmt.setLong(2, user.getUserId());
@@ -136,30 +136,30 @@ public class UserLinkController {
         Logger log = Logger.getLogger(String.valueOf(UserLinkController.class));
         int psId = 1;
         if(filter.getUser() == null) throw new UserLinkException("User is required");
-        try {
-            List<UserLink> userLinkResult = new ArrayList<>();
 
-            Connection conn = DatabaseConnection.getConnection();
+        List<UserLink> userLinkResult = new ArrayList<>();
 
-            String where = "WHERE (user_links.USER_ID_LINK1 = ? or user_links.USER_ID_LINK2 = ?) ";
-            String join = " INNER JOIN users user_links1 ON user_links1.USER_ID = user_links.USER_ID_LINK1 " +
-                          " INNER JOIN users user_links2 ON user_links2.USER_ID = user_links.USER_ID_LINK2 ";
+        String where = "WHERE (user_links.USER_ID_LINK1 = ? or user_links.USER_ID_LINK2 = ?) ";
+        String join = " INNER JOIN users user_links1 ON user_links1.USER_ID = user_links.USER_ID_LINK1 " +
+                " INNER JOIN users user_links2 ON user_links2.USER_ID = user_links.USER_ID_LINK2 ";
 
-            if (filter.getType() != null &&filter.getType() != 0) {
-                where += " AND user_links.TYPE = ?";
-            }
+        if (filter.getType() != null &&filter.getType() != 0) {
+            where += " AND user_links.TYPE = ?";
+        }
 
-            if (filter.getFromTs() != null) {
-                where += " AND user_links.CREATED_TS >= ? ";
-            }
+        if (filter.getFromTs() != null) {
+            where += " AND user_links.CREATED_TS >= ? ";
+        }
 
-            if (filter.getToTs() != null) {
-                where += " AND user_links.CREATED_TS <= ? ";
-            }
+        if (filter.getToTs() != null) {
+            where += " AND user_links.CREATED_TS <= ? ";
+        }
 
-            String sql = "SELECT " + UserLink.getColumns() + " FROM user_links " + join + where;
-            PreparedStatement stmt = conn.prepareStatement(sql);
+        String sql = "SELECT " + UserLink.getColumns() + " FROM user_links " + join + where;
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
 
+        ){
             stmt.setLong(psId++, filter.getUser().getUserId());
             stmt.setLong(psId++, filter.getUser().getUserId());
 
