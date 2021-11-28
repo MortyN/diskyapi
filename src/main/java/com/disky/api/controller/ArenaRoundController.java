@@ -19,9 +19,6 @@ import java.util.logging.Logger;
 public class ArenaRoundController {
      public static void create(ArenaRound round) throws ArenaRoundException {
          Logger log = Logger.getLogger(String.valueOf(ArenaRoundController.class));
-         Connection conn = DatabaseConnection.getConnection();
-         try {
-
 
              int psId = 1;
              validateCreate(round);
@@ -35,7 +32,9 @@ public class ArenaRoundController {
                  round.setUpdateTs(ts);
                  String sql = "INSERT INTO arena_rounds (ARENA_ID, HOLE_AMOUNT, PAYMENT, DESCRIPTION, CREATED_BY_USER_ID, CREATED_TS, MODIFIED_TS) values (?,?,?,?,?, ?,?)";
 
-                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                 try (Connection conn = DatabaseConnection.getConnection();
+                      PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                 ){
 
                  stmt.setLong(psId++, round.getArena().getArenaId());
                  stmt.setInt(psId++, round.getHoleAmount());
@@ -55,26 +54,22 @@ public class ArenaRoundController {
                      round.setArenaRoundId(rs.getLong(1));
                  }
                  if(!Utility.nullOrEmpty(round.getHoles())){
-                     round.setHoles(ArenaHoleController.create(round.getHoles(),round, conn));
+                     round.setHoles(ArenaHoleController.create(round.getHoles(),round));
                  }
-             }
-         } catch (SQLException | ArenaRoundException | GetUserException | ArenaException e) {
-             try {
-                 conn.rollback();
-             } catch (SQLException throwables) {
+             } catch (SQLException | ArenaRoundException | GetUserException | ArenaException e) {
                  throw new ArenaRoundException(e.getMessage());
              }
-             throw new ArenaRoundException(e.getMessage());
+
          }
      }
 
     public static void delete(ArenaRound arenaRound) throws ArenaRoundException {
-        Connection conn = DatabaseConnection.getConnection();
-        try {
-            Logger log = Logger.getLogger(String.valueOf(ArenaController.class));
+         String sql = "UPDATE arena_rounds SET ACTIVE = ?, MODIFIED_TS = ? WHERE ARENA_ROUND_ID = ? ";
 
-            String sql = "UPDATE arena_rounds SET ACTIVE = ?, MODIFIED_TS = ? WHERE ARENA_ROUND_ID = ? ";
-            PreparedStatement stmt = conn.prepareStatement(sql);
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+        ){
+            Logger log = Logger.getLogger(String.valueOf(ArenaController.class));
 
             stmt.setBoolean(1, false);
             stmt.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
@@ -92,16 +87,16 @@ public class ArenaRoundController {
     private static void update(ArenaRound round) throws ArenaRoundException {
         Logger log = Logger.getLogger(String.valueOf(ArenaRoundController.class));
         if(round.getArenaRoundId() == null) throw new ArenaRoundException("ArenaRoundId is required");
-        Connection conn = DatabaseConnection.getConnection();
         Timestamp ts = new Timestamp(System.currentTimeMillis());
         round.setUpdateTs(ts);
 
-        try {
+        String sql = "UPDATE arena_rounds SET PAYMENT = ?, DESCRIPTION = ?, MODIFIED_TS = ?, HOLE_AMOUNT = ? WHERE ARENA_ROUND_ID = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+        ){
             int psId = 1;
 
-            String sql = "UPDATE arena_rounds SET PAYMENT = ?, DESCRIPTION = ?, MODIFIED_TS = ?, HOLE_AMOUNT = ? WHERE ARENA_ROUND_ID = ?";
-
-            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setBoolean(psId++, round.getPayment());
             stmt.setString(psId++, round.getDescription());
             stmt.setTimestamp(psId++, round.getUpdateTs());
@@ -112,7 +107,7 @@ public class ArenaRoundController {
             log.info("Rows affected: " + stmt.executeUpdate());
 
             if(!Utility.nullOrEmpty(round.getHoles())){
-                round.setHoles(ArenaHoleController.create(round.getHoles(),round, conn));
+                round.setHoles(ArenaHoleController.create(round.getHoles(),round));
             }
         } catch (SQLException e) {
             throw new ArenaRoundException(e.getMessage());
@@ -138,38 +133,38 @@ public class ArenaRoundController {
         Logger log = Logger.getLogger(String.valueOf(ArenaRoundController.class));
         List<ArenaRound> arenaRoundResult = new ArrayList<>();
         String fields = ArenaRound.getColumns();
-        Connection conn = DatabaseConnection.getConnection();
 
-        try {
-            String where = "WHERE arena_rounds.ACTIVE = ?  ";
-            String leftJoin = null;
+        String where = "WHERE arena_rounds.ACTIVE = ?  ";
+        String leftJoin = null;
 
-            if(filter.getArenaRoundId() != null && filter.getArenaRoundId() != 0){
-                where += " AND arena_rounds.ARENA_ROUND_ID = ? ";
-            }
-            if (!Utility.nullOrEmpty(filter.getHoleAmounts())) {
-                where += " AND arena_rounds.HOLE_AMOUNT in ( " + Utility.listAsQuestionMarks(filter.getHoleAmounts()) + ")";
-            }
+        if(filter.getArenaRoundId() != null && filter.getArenaRoundId() != 0){
+            where += " AND arena_rounds.ARENA_ROUND_ID = ? ";
+        }
+        if (!Utility.nullOrEmpty(filter.getHoleAmounts())) {
+            where += " AND arena_rounds.HOLE_AMOUNT in ( " + Utility.listAsQuestionMarks(filter.getHoleAmounts()) + ")";
+        }
 
-            if (filter.getConnectedToArenaId() != null && filter.getConnectedToArenaId().getArenaId() != 0) {
-                where += " AND arena_rounds.ARENA_ID = ? ";
-            }
+        if (filter.getConnectedToArenaId() != null && filter.getConnectedToArenaId().getArenaId() != 0) {
+            where += " AND arena_rounds.ARENA_ID = ? ";
+        }
 
-            if (filter.getCreatedByUser() != null && filter.getCreatedByUser().getUserId() != null) {
-                where += " AND arena_rounds.CREATED_BY_USER_ID = ?";
-            }
+        if (filter.getCreatedByUser() != null && filter.getCreatedByUser().getUserId() != null) {
+            where += " AND arena_rounds.CREATED_BY_USER_ID = ?";
+        }
 
-            if(filter.getNeedPayment() != null){
-                where += " AND arena_rounds.PAYMENT = ?";
-            }
+        if(filter.getNeedPayment() != null){
+            where += " AND arena_rounds.PAYMENT = ?";
+        }
 
-            if(filter.getGetArenaHoles() != null){
-                leftJoin = " LEFT JOIN arena_rounds_hole USING(ARENA_ROUND_ID) ";
-                fields += ", " + ArenaRoundHole.getColumns();
-            }
+        if(filter.getGetArenaHoles() != null){
+            leftJoin = " LEFT JOIN arena_rounds_hole USING(ARENA_ROUND_ID) ";
+            fields += ", " + ArenaRoundHole.getColumns();
+        }
 
-            String sql = "SELECT " + fields + " FROM arena_rounds " + leftJoin + where ;
-            PreparedStatement stmt = conn.prepareStatement(sql);
+        String sql = "SELECT " + fields + " FROM arena_rounds " + leftJoin + where ;
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+        ){
             int psId = 1;
 
             stmt.setBoolean(psId++, filter.getIsActive());

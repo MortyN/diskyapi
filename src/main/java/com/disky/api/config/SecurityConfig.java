@@ -42,8 +42,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             public Authentication authenticate(Authentication authentication) throws AuthenticationException {
                 List<String> principalRequestValue = new ArrayList<>();
 
-                Connection con = DatabaseConnection.getConnection();
                 try {
+                    Connection con = DatabaseConnection.getConnection();
+
                     Logger log = Logger.getLogger(String.valueOf(SecurityConfig.class));
 
                     String sql = "SELECT API_KEY FROM users";

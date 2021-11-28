@@ -17,27 +17,26 @@ import java.util.logging.Logger;
 
 public class ArenaHoleController {
 
-    public static List<ArenaRoundHole> create(List<ArenaRoundHole> holes, ArenaRound arenaRound, Connection conn) throws ArenaRoundException {
+    public static List<ArenaRoundHole> create(List<ArenaRoundHole> holes, ArenaRound arenaRound) throws ArenaRoundException {
         List<ArenaRoundHole> holeResult = new ArrayList<>();
         for(ArenaRoundHole hole : holes){
             hole.setArenaRound(arenaRound);
-             holeResult.add(create(hole, true, conn));
+             holeResult.add(create(hole));
         }
         return holeResult;
     }
-    public static ArenaRoundHole create(ArenaRoundHole hole, Boolean transaction, Connection connection) throws ArenaRoundException {
+    public static ArenaRoundHole create(ArenaRoundHole hole) throws ArenaRoundException {
         Logger log = Logger.getLogger(String.valueOf(ArenaHoleController.class));
-        Connection conn = DatabaseConnection.getConnection();
-        try {
-            if(connection != null) conn = connection;
-            int psId = 1;
-            validateCreate(hole);
-            String fields = "";
-            String marks = "";
+
             if(hole.getArenaRoundHoleId() !=  null && !hole.getArenaRoundHoleId().equals(0L)) {
                 update(hole);
                 return null;
             } else {
+                int psId = 1;
+                validateCreate(hole);
+                String fields = "";
+                String marks = "";
+
                 if(hole.getStart_latitude() != null && hole.getStart_longitude() != null && hole.getStart_latitude() != null && hole.getStart_longitude() != null){
                     fields = " , START_LATITUDE , START_LONGITUDE, END_LATITUDE , END_LONGITUDE ";
                     marks = ",?,?,?,?";
@@ -45,35 +44,38 @@ public class ArenaHoleController {
 
                 String sql = "INSERT INTO arena_rounds_hole (ARENA_ROUND_ID, HOLE_NAME, PAR_VALUE, SORT" + fields + ") values (?, ?, ?, ?" + marks + ")";
 
-                log.info(sql);
-                PreparedStatement stmt = conn.prepareStatement(sql);
+                try (Connection conn = DatabaseConnection.getConnection();
+                     PreparedStatement stmt = conn.prepareStatement(sql);){
 
-                stmt.setLong(psId++, hole.getArenaRound().getArenaRoundId());
-                stmt.setString(psId++, "Hole " + hole.getOrder());
-                stmt.setInt(psId++, hole.getParValue());
-                stmt.setInt(psId++, hole.getOrder());
+                    log.info(sql);
 
-                if(hole.getStart_latitude() != null && hole.getStart_longitude() != null && hole.getStart_latitude() != null && hole.getStart_longitude() != null){
-                    stmt.setString(psId++, hole.getStart_latitude());
-                    stmt.setString(psId++, hole.getStart_longitude());
-                    stmt.setString(psId++, hole.getEnd_latitude());
-                    stmt.setString(psId++, hole.getEnd_longitude());
+                    stmt.setLong(psId++, hole.getArenaRound().getArenaRoundId());
+                    stmt.setString(psId++, "Hole " + hole.getOrder());
+                    stmt.setInt(psId++, hole.getParValue());
+                    stmt.setInt(psId++, hole.getOrder());
+
+                    if(hole.getStart_latitude() != null && hole.getStart_longitude() != null && hole.getStart_latitude() != null && hole.getStart_longitude() != null){
+                        stmt.setString(psId++, hole.getStart_latitude());
+                        stmt.setString(psId++, hole.getStart_longitude());
+                        stmt.setString(psId++, hole.getEnd_latitude());
+                        stmt.setString(psId++, hole.getEnd_longitude());
+                    }
+
+                    hole.setArenaRound(ArenaRoundController.get(hole.getArenaRound()));
+
+                    log.info("Rows affected: " + stmt.executeUpdate());
+                } catch (SQLException | ArenaRoundException  e) {
+                    throw new ArenaRoundException(e.getMessage());
                 }
-
-                hole.setArenaRound(ArenaRoundController.get(hole.getArenaRound()));
-
-                log.info("Rows affected: " + stmt.executeUpdate());
             }
 
-        } catch (SQLException | ArenaRoundException  e) {
-            throw new ArenaRoundException(e.getMessage());
-        }
+
         return hole;
     }
 
     private static void update(ArenaRoundHole hole) throws ArenaRoundException {
         Logger log = Logger.getLogger(String.valueOf(ArenaHoleController.class));
-        Connection conn = DatabaseConnection.getConnection();
+
         String fields = "";
 
         if(hole.getOrder() != null && hole.getHoleName() != null && hole.getOrder().equals(hole.getHoleName().split(" ")[1])){
@@ -82,12 +84,12 @@ public class ArenaHoleController {
         if(hole.getStart_latitude() != null && hole.getStart_longitude() != null && hole.getStart_latitude() != null && hole.getStart_longitude() != null){
             fields = " , START_LATITUDE = ? , START_LONGITUDE = ?, END_LATITUDE = ? , END_LONGITUDE = ? ";
         }
-        try {
+        String sql = "UPDATE arena_rounds_hole SET PAR_VALUE = ?, ACTIVE = ? " + fields + "  WHERE ARENA_ROUND_HOLE_ID = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);){
             int psId = 1;
 
-            String sql = "UPDATE arena_rounds_hole SET PAR_VALUE = ?, ACTIVE = ? " + fields + "  WHERE ARENA_ROUND_HOLE_ID = ?";
-
-            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(psId++, hole.getParValue());
             stmt.setBoolean(psId++, hole.getActive());
             if(hole.getOrder() != null && hole.getHoleName() != null && hole.getOrder().equals(hole.getHoleName().split(" ")[1])){
@@ -118,10 +120,10 @@ public class ArenaHoleController {
     public static ArenaRoundHole getHole(ArenaRoundHole hole) throws ArenaRoundException{
         Logger log = Logger.getLogger(String.valueOf(ArenaHoleController.class));
 
-        Connection conn = DatabaseConnection.getConnection();
-        try {
-            String sql = "SELECT * FROM arena_rounds_hole.ARENA_ROUND_HOLE_ID = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
+        String sql = "SELECT * FROM arena_rounds_hole.ARENA_ROUND_HOLE_ID = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);){
 
             stmt.setLong(1, hole.getArenaRoundHoleId());
 
