@@ -1,7 +1,9 @@
 package com.disky.api;
 
+import com.disky.api.util.DatabaseConnection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
@@ -19,12 +21,13 @@ public class DiskyApiApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
         SpringApplication.run(DiskyApiApplication.class, args);
+
         log.info("DiskyApi is now running...");
     }
 
     @RequestMapping(value = "/")
     public String hello() {
-        return "Hello World from Tomcat";
+        return "DiskyApi health check 200 OK";
     }
 
 

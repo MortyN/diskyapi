@@ -9,6 +9,7 @@ import com.disky.api.model.User;
 import com.disky.api.util.DatabaseConnection;
 import com.disky.api.util.Utility;
 import com.disky.api.util.S3Util;
+import lombok.SneakyThrows;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigInteger;
@@ -21,7 +22,7 @@ import java.util.logging.Logger;
 public class UserController {
 //TODO: Fix transaction and internal transaction logic
 
-
+    @SneakyThrows
     public static void delete(User user) throws  GetUserException {
         Connection conn = DatabaseConnection.getConnection();
         try {
@@ -39,7 +40,7 @@ public class UserController {
         }
         //TODO: Slett fra alle andre tabeller også
     }
-
+    @SneakyThrows
     public static void save(User user, MultipartFile file) throws GetUserException {
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
         Connection conn = DatabaseConnection.getConnection();
@@ -82,6 +83,7 @@ public class UserController {
         }
 
     }
+    @SneakyThrows
     private static void update(User user, MultipartFile file) throws GetUserException, UserImageUploadException {
         String fileName = null;
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
@@ -144,7 +146,7 @@ public class UserController {
 
         return users.get(0);
     }
-
+    @SneakyThrows
     public static List<User> get(UserFilter filter) throws GetUserException {
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
         List<User> userResult = new ArrayList<>();
@@ -235,7 +237,7 @@ public class UserController {
            throw new GetUserException("Unable to get user");
        }
     }
-
+    @SneakyThrows
     public static List<User> search(String keyword) throws GetUserException {
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
         List<User> userResult = new ArrayList<>();

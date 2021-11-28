@@ -9,6 +9,7 @@ import com.disky.api.model.ScoreCardMember;
 import com.disky.api.model.User;
 import com.disky.api.util.DatabaseConnection;
 import com.disky.api.util.Utility;
+import lombok.SneakyThrows;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ public class ScoreCardMemberController {
             create(member);
         }
     }
+    @SneakyThrows
     public static void create(ScoreCardMember scoreCardMember) throws ScoreCardMemberException{
         Logger log = Logger.getLogger(String.valueOf(ScoreCardMemberController.class));
         Connection conn = DatabaseConnection.getConnection();
@@ -72,6 +74,7 @@ public class ScoreCardMemberController {
        }
        return members.get(0);
     }
+    @SneakyThrows
     public static List<ScoreCardMember> get(ScoreCardMemberFilter filter) throws ScoreCardMemberException{
         Logger log = Logger.getLogger(String.valueOf(ScoreCardMemberController.class));
         List<ScoreCardMember> scoreCardMemberResult = new ArrayList<>();

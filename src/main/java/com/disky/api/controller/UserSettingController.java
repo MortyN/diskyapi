@@ -4,6 +4,7 @@ import com.disky.api.Exceptions.UserSettingException;
 import com.disky.api.filter.UserSettingFilter;
 import com.disky.api.model.UserSetting;
 import com.disky.api.util.DatabaseConnection;
+import lombok.SneakyThrows;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,7 +18,7 @@ public class UserSettingController {
 
     //TODO: DELTE - Done, but the query could be improved. INNER join didn't work.
 
-
+    @SneakyThrows
     public static void delete(UserSetting userSetting) throws UserSettingException {
         Connection conn = DatabaseConnection.getConnection();
         try {
@@ -34,7 +35,7 @@ public class UserSettingController {
             throw new UserSettingException("Unable to delete the setting.");
         }
     }
-
+    @SneakyThrows
     public static void save(UserSetting userSetting) throws UserSettingException {
         Logger log = Logger.getLogger(String.valueOf(UserSettingController.class));
         Connection conn = DatabaseConnection.getConnection();
@@ -58,7 +59,7 @@ public class UserSettingController {
             throw new UserSettingException(e.getMessage());
         }
     }
-
+    @SneakyThrows
     private static void update(UserSetting userSetting) throws UserSettingException {
         Logger log = Logger.getLogger(String.valueOf(UserSetting.class));
         Connection conn = DatabaseConnection.getConnection();
@@ -76,7 +77,7 @@ public class UserSettingController {
             throw new UserSettingException(e.getMessage());
         }
     }
-
+    @SneakyThrows
     public static List<UserSetting> get(UserSettingFilter filter) throws UserSettingException {
         Logger log = Logger.getLogger(String.valueOf(UserSettingController.class));
         List<UserSetting> userSettingResults = new ArrayList<>();

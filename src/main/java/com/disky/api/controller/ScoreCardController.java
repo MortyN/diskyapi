@@ -8,6 +8,7 @@ import com.disky.api.filter.ScoreCardFilter;
 import com.disky.api.model.*;
 import com.disky.api.util.DatabaseConnection;
 import com.disky.api.util.Utility;
+import lombok.SneakyThrows;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 public class ScoreCardController {
+    @SneakyThrows
     public static void create(ScoreCard scoreCard) throws ScoreCardException {
         if (scoreCard.getCreatedBy() == null && scoreCard.getCreatedBy().getUserId() == 0)
             throw new ScoreCardException("User is required!");

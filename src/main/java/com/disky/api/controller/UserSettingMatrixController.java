@@ -7,6 +7,7 @@ import com.disky.api.model.User;
 import com.disky.api.model.UserSetting;
 import com.disky.api.model.UserSettingMatrix;
 import com.disky.api.util.DatabaseConnection;
+import lombok.SneakyThrows;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class UserSettingMatrixController {
-
+    @SneakyThrows
     //TODO: Delete every row with a specific USER_ID. ONLY to be used when deleting a user.
     public static void deleteSettings(UserSettingMatrix userSettingMatrix) throws UserSettingsMatrixException {
         Connection conn = DatabaseConnection.getConnection();
@@ -36,7 +37,7 @@ public class UserSettingMatrixController {
             throw new UserSettingsMatrixException(e.getMessage());
         }
     }
-
+    @SneakyThrows
     public static void deactivateSetting(UserSettingMatrix userSettingMatrix) throws UserSettingsMatrixException {
         Connection conn = DatabaseConnection.getConnection();
         try {
@@ -56,7 +57,7 @@ public class UserSettingMatrixController {
             throw new UserSettingsMatrixException(e.getMessage());
         }
     }
-
+    @SneakyThrows
     public void save(UserSettingMatrix userSettingMatrix) throws UserSettingsMatrixException {
         Logger log = Logger.getLogger(String.valueOf(UserSettingsMatrixException.class));
         Connection conn = DatabaseConnection.getConnection();
@@ -78,7 +79,7 @@ public class UserSettingMatrixController {
             throw new UserSettingsMatrixException(e.getMessage());
         }
     }
-
+    @SneakyThrows
     public static void update(UserSettingMatrix userSettingMatrix) throws UserSettingsMatrixException {
         Logger log = Logger.getLogger(String.valueOf(UserSettingsMatrixException.class));
         Connection conn = DatabaseConnection.getConnection();
@@ -98,7 +99,7 @@ public class UserSettingMatrixController {
             throw new UserSettingsMatrixException(e.getMessage());
         }
     }
-
+    @SneakyThrows
     public static List<UserSettingMatrix> get(UserSettingMatrixFilter filter) throws UserSettingsMatrixException {
         Logger log = Logger.getLogger(String.valueOf(UserSettingMatrixController.class));
         List<UserSettingMatrix> userSettingMatrixResult = new ArrayList<>();

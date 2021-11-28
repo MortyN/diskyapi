@@ -6,6 +6,7 @@ import com.disky.api.model.Arena;
 import com.disky.api.model.ArenaRound;
 import com.disky.api.model.ArenaRoundHole;
 import com.disky.api.util.DatabaseConnection;
+import lombok.SneakyThrows;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -25,6 +26,7 @@ public class ArenaHoleController {
         }
         return holeResult;
     }
+    @SneakyThrows
     public static ArenaRoundHole create(ArenaRoundHole hole, Boolean transaction, Connection connection) throws ArenaRoundException {
         Logger log = Logger.getLogger(String.valueOf(ArenaHoleController.class));
         Connection conn = DatabaseConnection.getConnection();
@@ -70,7 +72,7 @@ public class ArenaHoleController {
         }
         return hole;
     }
-
+    @SneakyThrows
     private static void update(ArenaRoundHole hole) throws ArenaRoundException {
         Logger log = Logger.getLogger(String.valueOf(ArenaHoleController.class));
         Connection conn = DatabaseConnection.getConnection();
@@ -114,7 +116,7 @@ public class ArenaHoleController {
         if(hole.getArenaRound() == null || hole.getArenaRound().getArenaRoundId() == null || hole.getArenaRound().getArenaRoundId() == 0) throw new ArenaRoundException("ArenaRoundId is required");
         if(hole.getParValue() == null || hole.getParValue() == 0 ) throw new ArenaRoundException("ParValue is required");
     }
-
+    @SneakyThrows
     public static ArenaRoundHole getHole(ArenaRoundHole hole) throws ArenaRoundException{
         Logger log = Logger.getLogger(String.valueOf(ArenaHoleController.class));
 

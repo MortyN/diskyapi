@@ -1,6 +1,7 @@
 package com.disky.api.config;
 
 import com.disky.api.util.DatabaseConnection;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -24,6 +25,7 @@ import java.util.logging.Logger;
 @Configuration
 @EnableWebSecurity
 @Order(1)
+
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${diskyapi.http.auth-token-header-name}")
@@ -33,11 +35,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private String principalAdminRequestValue;
 
 
+
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         APIKeyAuthFilter filter = new APIKeyAuthFilter(principalRequestHeader);
         filter.setAuthenticationManager(new AuthenticationManager() {
 
+            @SneakyThrows
             @Override
             public Authentication authenticate(Authentication authentication) throws AuthenticationException {
                 List<String> principalRequestValue = new ArrayList<>();

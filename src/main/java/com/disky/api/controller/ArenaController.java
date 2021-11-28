@@ -7,6 +7,7 @@ import com.disky.api.filter.ArenaFilter;
 import com.disky.api.model.*;
 import com.disky.api.util.DatabaseConnection;
 import com.disky.api.util.Utility;
+import lombok.SneakyThrows;
 
 import java.sql.*;
 import java.sql.Connection;
@@ -18,7 +19,7 @@ import java.util.logging.Logger;
 
 public class ArenaController {
 
-
+    @SneakyThrows
     public static void delete(Arena arena) throws ArenaException {
         Connection conn = DatabaseConnection.getConnection();
         try {
@@ -38,7 +39,7 @@ public class ArenaController {
             throw new ArenaException(e.getMessage());
         }
     }
-
+    @SneakyThrows
     public static Arena create(Arena arena) throws ArenaException{
         Logger log = Logger.getLogger(String.valueOf(ArenaController.class));
         Connection conn = DatabaseConnection.getConnection();
@@ -83,7 +84,7 @@ public class ArenaController {
         }
         return arena;
     }
-
+    @SneakyThrows
     private static void update(Arena arena) throws ArenaException {
         Logger log = Logger.getLogger(String.valueOf(ArenaController.class));
         Connection conn = DatabaseConnection.getConnection();
@@ -124,6 +125,7 @@ public class ArenaController {
 
         return arenas.get(0);
     }
+    @SneakyThrows
     public static List<Arena> get(ArenaFilter filter) throws ArenaException {
         Logger log = Logger.getLogger(String.valueOf(ArenaController.class));
         List<Arena> arenaResult = new ArrayList<>();

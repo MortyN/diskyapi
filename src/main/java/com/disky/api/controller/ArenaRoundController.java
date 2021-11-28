@@ -10,6 +10,7 @@ import com.disky.api.model.ArenaRoundHole;
 import com.disky.api.model.User;
 import com.disky.api.util.DatabaseConnection;
 import com.disky.api.util.Utility;
+import lombok.SneakyThrows;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class ArenaRoundController {
+    @SneakyThrows
      public static void create(ArenaRound round) throws ArenaRoundException {
          Logger log = Logger.getLogger(String.valueOf(ArenaRoundController.class));
          Connection conn = DatabaseConnection.getConnection();
@@ -67,7 +69,7 @@ public class ArenaRoundController {
              throw new ArenaRoundException(e.getMessage());
          }
      }
-
+    @SneakyThrows
     public static void delete(ArenaRound arenaRound) throws ArenaRoundException {
         Connection conn = DatabaseConnection.getConnection();
         try {
@@ -89,6 +91,7 @@ public class ArenaRoundController {
             throw new ArenaRoundException(e.getMessage());
         }
     }
+    @SneakyThrows
     private static void update(ArenaRound round) throws ArenaRoundException {
         Logger log = Logger.getLogger(String.valueOf(ArenaRoundController.class));
         if(round.getArenaRoundId() == null) throw new ArenaRoundException("ArenaRoundId is required");
@@ -134,6 +137,7 @@ public class ArenaRoundController {
         if(arenaRounds.size() > 1) throw new ArenaRoundException("Expected one, got " + arenaRounds.size());
         return arenaRounds.get(0);
     }
+    @SneakyThrows
     public static List<ArenaRound> get(ArenaRoundFilter filter) throws ArenaRoundException {
         Logger log = Logger.getLogger(String.valueOf(ArenaRoundController.class));
         List<ArenaRound> arenaRoundResult = new ArrayList<>();

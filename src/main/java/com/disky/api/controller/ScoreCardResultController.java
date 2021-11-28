@@ -10,6 +10,7 @@ import com.disky.api.model.ArenaRoundHole;
 import com.disky.api.model.ScoreCardMember;
 import com.disky.api.model.ScoreCardResult;
 import com.disky.api.util.DatabaseConnection;
+import lombok.SneakyThrows;
 import org.springframework.transaction.TransactionManager;
 
 import javax.xml.crypto.Data;
@@ -22,7 +23,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class ScoreCardResultController {
-
+    @SneakyThrows
     public static void save(ScoreCardResult scoreCardResult) throws ScoreCardResultException{
         Logger log = Logger.getLogger(String.valueOf(ScoreCardResultController.class));
         Connection conn = DatabaseConnection.getConnection();
@@ -41,7 +42,7 @@ public class ScoreCardResultController {
             throw new ScoreCardResultException(e.getMessage());
         }
     }
-
+    @SneakyThrows
     public static void Update(ScoreCardResult scoreCardResult) throws ScoreCardResultException {
         Logger log = Logger.getLogger(String.valueOf(ScoreCardResultController.class));
         Connection conn = DatabaseConnection.getConnection();
@@ -60,7 +61,7 @@ public class ScoreCardResultController {
             throw new ScoreCardResultException(e.getMessage());
         }
     }
-
+    @SneakyThrows
     public static List<ScoreCardResult> get(ScoreCardResultControllerFilter filter) throws ScoreCardResultException {
         Logger log = Logger.getLogger(String.valueOf(ScoreCardResultController.class));
         List<ScoreCardResult> scoreCardResults = new ArrayList<>();

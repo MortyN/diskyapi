@@ -1,40 +1,34 @@
 package com.disky.api.util;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
-
-import javax.swing.*;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
-@Configuration
-@PropertySource("classpath:application.properties")
 public class DatabaseConnection {
 
-    static Connection con = null;
+    private DatabaseConnection() {}
 
-    private static String STATIC_DBIPADDRESS;
+    private static HikariConfig config = new HikariConfig();
+    private static HikariDataSource ds;
 
-    @Value("#{systemEnvironment['DISKY_DB_IP'] ?: 'Default_value'}")
-    public void setNameStatic(String DISKY_DB_IP){
-        DatabaseConnection.STATIC_DBIPADDRESS = DISKY_DB_IP;
+    static {
+        config.setJdbcUrl( "jdbc:mysql://"+System.getenv("DISKY_DB_IP")+":3306/MOB3100_DEV" );
+        config.setUsername( "MOB3100_DEV" );
+        config.setPassword( "Platinum" );
+        config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        config.setMaximumPoolSize(100);
+        config.setConnectionTimeout(300000);
+        config.setConnectionTimeout(120000);
+        config.setLeakDetectionThreshold(300000);
+        config.addDataSourceProperty( "cachePrepStmts" , "true" );
+        config.addDataSourceProperty( "prepStmtCacheSize" , "250" );
+        config.addDataSourceProperty( "prepStmtCacheSqlLimit" , "2048" );
+        ds = new HikariDataSource( config );
     }
 
-    public static Connection getConnection() {
-        if (con != null) return con;
-        return getConnection("jdbc:mysql://"+STATIC_DBIPADDRESS+":3306/MOB3100_DEV?autoReconnect=true", "MOB3100_DEV", "Platinum");
-    }
-
-    private static Connection getConnection(String url, String user_name, String password) {
-        try {
-            con = DriverManager.getConnection(url, user_name, password);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return con;
+    public static Connection getConnection() throws SQLException {
+        return ds.getConnection();
     }
 
 }

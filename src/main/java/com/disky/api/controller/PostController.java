@@ -8,6 +8,7 @@ import com.disky.api.filter.UserLinkFilter;
 import com.disky.api.model.*;
 import com.disky.api.util.DatabaseConnection;
 import com.disky.api.util.Utility;
+import lombok.SneakyThrows;
 
 import java.lang.invoke.WrongMethodTypeException;
 import java.sql.*;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class PostController {
+    @SneakyThrows
     public static List<Post> getPost(PostFilter filter) throws PostControllerException {
         int psId = 1;
         Logger log = Logger.getLogger(String.valueOf(PostController.class));
@@ -97,7 +99,7 @@ public class PostController {
             throw new PostControllerException(e.getMessage());
         }
     }
-
+    @SneakyThrows
     private static Interactions getInteractions(Post post) throws PostControllerException {
         List<Interaction> interaction = new ArrayList<>();
         String sql = "SELECT * FROM post_interactions WHERE POST_ID = ? ";
@@ -119,7 +121,7 @@ public class PostController {
         }
 
     }
-
+    @SneakyThrows
     private static Interactions getInteractions(Post post, User loggedInUser) throws PostControllerException {
         List<Interaction> interaction = new ArrayList<>();
         String sql = "SELECT * FROM post_interactions WHERE POST_ID = ? ";
@@ -149,7 +151,7 @@ public class PostController {
         }
 
     }
-
+    @SneakyThrows
     public static void delete(Post post) throws PostControllerException {
         if(post.getPostId() == null) throw new PostControllerException("postId is required!");
         Logger log = Logger.getLogger(String.valueOf(PostController.class));
@@ -170,7 +172,7 @@ public class PostController {
             throw new PostControllerException(e.getMessage());
         }
     };
-
+    @SneakyThrows
     public static void create(Post post) throws PostControllerException {
         validateObject(post);
         int psId = 1;
@@ -222,7 +224,7 @@ public class PostController {
         if(post.getType() == 0)
             throw new PostControllerException("postType is required!");
     }
-
+    @SneakyThrows
     private static int update(Post post) throws PostControllerException {
         if(post.getPostId() == null || post.getMessage() == null) throw new PostControllerException("PostId and post message is required!");
         Logger log = Logger.getLogger(String.valueOf(PostController.class));
@@ -246,7 +248,7 @@ public class PostController {
             throw new PostControllerException(e.getMessage());
         }
     }
-
+    @SneakyThrows
     private static List<Long> getUserRelations(User user) throws PostControllerException {
         List<Long> userIds = new ArrayList<>();
         Connection conn = DatabaseConnection.getConnection();
@@ -310,7 +312,7 @@ public class PostController {
 
         return interaction;
     }
-
+    @SneakyThrows
     private static Interaction deleteInteract(Interaction interaction) throws PostControllerException {
         Logger log = Logger.getLogger(String.valueOf(PostController.class));
         String sql = "DELETE FROM post_interactions WHERE POST_ID = ? AND USER_ID = ? ;";
@@ -326,7 +328,7 @@ public class PostController {
         }
         return null;
     }
-
+    @SneakyThrows
     private static boolean alreadyInteracted(Interaction interaction) throws PostControllerException {
         String sql = "SELECT * FROM post_interactions WHERE POST_ID = ? AND USER_ID = ? ";
         Connection conn = DatabaseConnection.getConnection();
