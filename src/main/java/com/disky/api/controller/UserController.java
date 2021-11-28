@@ -15,12 +15,14 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class UserController {
-//TODO: Fix transaction and internal transaction logic
-
+    //TODO: Fix transaction and internal transaction logic
+    private static Map<Long, User> users = new HashMap<>();
 
     public static void delete(User user) throws  GetUserException {
         String sql = "DELETE FROM users WHERE USER_ID = ?";
@@ -121,12 +123,16 @@ public class UserController {
        }
     }
     protected static User getOne(User user) throws GetUserException {
+        User cachedUser = users.get(user.getUserId());
+        if(cachedUser != null) return cachedUser;
+
         UserFilter filter = new UserFilter();
         filter.addUserIds(user.getUserId());
         User rawUser = getOne(filter);
         if(rawUser != null){
             rawUser.setPassword("***********");
         }
+        users.put(rawUser.getUserId(), rawUser);
         return rawUser;
     }
 
@@ -235,7 +241,6 @@ public class UserController {
         List<User> userResult = new ArrayList<>();
         boolean whereSet = false;
         String where = " WHERE ";
-
 
         if (keyword.startsWith("+") || keyword.matches("[0-9].*")) {
             where += " users.PHONE_NUMBER = ?";
