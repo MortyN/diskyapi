@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 
 public class ArenaController {
 
-    @SneakyThrows
+
     public static void delete(Arena arena) throws ArenaException {
         Logger log = Logger.getLogger(String.valueOf(ArenaController.class));
         String sql = "UPDATE arena SET ACTIVE = ?, MODIFIED_TS = ? WHERE ARENA_ID = ? ";
@@ -39,7 +39,7 @@ public class ArenaController {
             throw new ArenaException(e.getMessage());
         }
     }
-    @SneakyThrows
+
     public static Arena create(Arena arena) throws ArenaException{
         Logger log = Logger.getLogger(String.valueOf(ArenaController.class));
         String sql = "INSERT INTO arena (NAME, DESCRIPTION, CREATED_BY_USER_ID, CREATED_TS, MODIFIED_TS, LONGITUDE, LATITUDE, ACTIVE) VALUES (?,?,?,?,?,?,?,?)";
@@ -85,7 +85,7 @@ public class ArenaController {
         }
         return arena;
     }
-    @SneakyThrows
+
     private static void update(Arena arena) throws ArenaException {
         Logger log = Logger.getLogger(String.valueOf(ArenaController.class));
         String sql = "UPDATE arena SET NAME = ?, DESCRIPTION = ?, ESTABLISHED = ?, MODIFIED_TS = ?, LATITUDE = ?, LONGITUDE = ?, ACTIVE = ? WHERE ARENA_ID = ? ";
@@ -127,7 +127,7 @@ public class ArenaController {
 
         return arenas.get(0);
     }
-    @SneakyThrows
+    
     public static List<Arena> get(ArenaFilter filter) throws ArenaException {
         Logger log = Logger.getLogger(String.valueOf(ArenaController.class));
         List<Arena> arenaResult = new ArrayList<>();

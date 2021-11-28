@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 public class ScoreCardController {
-    @SneakyThrows
+    
     public static void create(ScoreCard scoreCard) throws ScoreCardException {
         if (scoreCard.getCreatedBy() == null && scoreCard.getCreatedBy().getUserId() == 0)
             throw new ScoreCardException("User is required!");

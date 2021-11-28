@@ -22,7 +22,7 @@ public class ScoreCardMemberController {
             create(member);
         }
     }
-    @SneakyThrows
+
     public static void create(ScoreCardMember scoreCardMember) throws ScoreCardMemberException{
         Logger log = Logger.getLogger(String.valueOf(ScoreCardMemberController.class));
         String sql = "INSERT INTO score_card_members (USER_ID, CARD_ID) VALUES (?, ?)";
@@ -68,7 +68,7 @@ public class ScoreCardMemberController {
        }
        return members.get(0);
     }
-    @SneakyThrows
+
     public static List<ScoreCardMember> get(ScoreCardMemberFilter filter) throws ScoreCardMemberException{
         Logger log = Logger.getLogger(String.valueOf(ScoreCardMemberController.class));
         List<ScoreCardMember> scoreCardMemberResult = new ArrayList<>();

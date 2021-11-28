@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class ArenaRoundController {
-    @SneakyThrows
+    
      public static void create(ArenaRound round) throws ArenaRoundException {
          Logger log = Logger.getLogger(String.valueOf(ArenaRoundController.class));
 
@@ -64,7 +64,7 @@ public class ArenaRoundController {
 
          }
      }
-    @SneakyThrows
+    
     public static void delete(ArenaRound arenaRound) throws ArenaRoundException {
          String sql = "UPDATE arena_rounds SET ACTIVE = ?, MODIFIED_TS = ? WHERE ARENA_ROUND_ID = ? ";
 
@@ -86,7 +86,7 @@ public class ArenaRoundController {
             throw new ArenaRoundException(e.getMessage());
         }
     }
-    @SneakyThrows
+    
     private static void update(ArenaRound round) throws ArenaRoundException {
         Logger log = Logger.getLogger(String.valueOf(ArenaRoundController.class));
         if(round.getArenaRoundId() == null) throw new ArenaRoundException("ArenaRoundId is required");
@@ -132,7 +132,7 @@ public class ArenaRoundController {
         if(arenaRounds.size() > 1) throw new ArenaRoundException("Expected one, got " + arenaRounds.size());
         return arenaRounds.get(0);
     }
-    @SneakyThrows
+    
     public static List<ArenaRound> get(ArenaRoundFilter filter) throws ArenaRoundException {
         Logger log = Logger.getLogger(String.valueOf(ArenaRoundController.class));
         List<ArenaRound> arenaRoundResult = new ArrayList<>();

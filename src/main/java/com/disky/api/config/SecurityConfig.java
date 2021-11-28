@@ -41,7 +41,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         APIKeyAuthFilter filter = new APIKeyAuthFilter(principalRequestHeader);
         filter.setAuthenticationManager(new AuthenticationManager() {
 
-            @SneakyThrows
+            
             @Override
             public Authentication authenticate(Authentication authentication) throws AuthenticationException {
                 List<String> principalRequestValue = new ArrayList<>();

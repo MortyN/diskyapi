@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 public class UserController {
 //TODO: Fix transaction and internal transaction logic
 
-    @SneakyThrows
+    
     public static void delete(User user) throws  GetUserException {
         String sql = "DELETE FROM users WHERE USER_ID = ?";
 
@@ -36,7 +36,7 @@ public class UserController {
             throw new GetUserException("Unabled to delete user");
         }
     }
-    @SneakyThrows
+    
     public static void save(User user, MultipartFile file) throws GetUserException {
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
         String fileName = "";
@@ -81,7 +81,7 @@ public class UserController {
             throw new GetUserException(e.getMessage());
         }
     }
-    @SneakyThrows
+    
     private static void update(User user, MultipartFile file) throws GetUserException, UserImageUploadException {
         String fileName = null;
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
@@ -142,7 +142,7 @@ public class UserController {
 
         return users.get(0);
     }
-    @SneakyThrows
+    
     public static List<User> get(UserFilter filter) throws GetUserException {
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
         List<User> userResult = new ArrayList<>();
@@ -231,7 +231,7 @@ public class UserController {
            throw new GetUserException("Unable to get user");
        }
     }
-    @SneakyThrows
+    
     public static List<User> search(String keyword) throws GetUserException {
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
         List<User> userResult = new ArrayList<>();
