@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 public class UserController {
-    //TODO: Fix transaction and internal transaction logic
     private static Map<Long, User> users = new HashMap<>();
 
     public static void delete(User user) throws  GetUserException {
@@ -116,12 +115,25 @@ public class UserController {
            log.info("Rows affected: " + stmt.executeUpdate());
 
            user.setImgKey(fileName);
+
+           updateCache(user);
        } catch (SQLException  e) {
            log.warning("Failed to update image in DB, rollback upload.");
            S3Util.s3DeletePhoto(fileName);
            throw new GetUserException(e.getMessage());
        }
     }
+
+    private static void updateCache(User user) {
+        User cachedUser = users.get(user.getUserId());
+        cachedUser.setUserLinks(user.getUserLinks());
+        cachedUser.setImgKey(user.getImgKey());
+        cachedUser.setUserName(user.getUserName());
+        cachedUser.setFirstName(user.getFirstName());
+        cachedUser.setLastName(user.getLastName());
+        cachedUser.setPhoneNumber(user.getPhoneNumber());
+    }
+
     protected static User getOne(User user) throws GetUserException {
         User cachedUser = users.get(user.getUserId());
         if(cachedUser != null) return cachedUser;

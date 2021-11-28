@@ -10,12 +10,11 @@ import com.disky.api.util.DatabaseConnection;
 import com.disky.api.util.Utility;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class ScoreCardController {
+    private static Map<Long, ScoreCard> scoreCards = new HashMap<>();
     public static void create(ScoreCard scoreCard) throws ScoreCardException {
         if (scoreCard.getCreatedBy() == null && scoreCard.getCreatedBy().getUserId() == 0)
             throw new ScoreCardException("User is required!");
@@ -81,6 +80,21 @@ public class ScoreCardController {
         }
     }
 
+    public static ScoreCard getOneScoreCard(Long cardId) throws GetUserException, ScoreCardException {
+        ScoreCard cachedScoreCard = scoreCards.get(cardId);
+        if(cachedScoreCard != null) return cachedScoreCard;
+
+        ScoreCardFilter filter = new ScoreCardFilter();
+        filter.setScoreCardId(cardId);
+        List<ScoreCard> newScoreCards = getScoreCard(filter);
+
+        if(!Utility.nullOrEmpty(newScoreCards)){
+            ScoreCard newScoreCard = newScoreCards.get(0);
+            scoreCards.put(newScoreCard.getCardId(), newScoreCard);
+            return newScoreCard;
+        }
+        return null;
+    }
     public static List<ScoreCard> getScoreCard(ScoreCardFilter filter) throws ScoreCardException, GetUserException {
         List<ScoreCard> result = new ArrayList<>();
         Logger log = Logger.getLogger(String.valueOf(ScoreCardController.class));
@@ -243,4 +257,6 @@ public class ScoreCardController {
                 " ar.END_LONGITUDE AR_LONGITUDE, " +
                 " ar.SORT AR_ORDER ";
     }
+
+
 }
