@@ -162,6 +162,7 @@ public class UserController {
         User rawUser = getOne(filter);
         if(rawUser != null){
             rawUser.setPassword("***********");
+            rawUser.setApiKey("");
         }
         users.put(rawUser.getUserId(), rawUser);
 
