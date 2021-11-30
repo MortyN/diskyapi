@@ -18,7 +18,7 @@ import java.util.*;
 @CrossOrigin
 public class GsoValidater {
     GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
-            .setAudience(Arrays.asList("331251032035-3t6a82lqs6k1n1ecbr010qfks35lt3sv.apps.googleusercontent.com", "331251032035-q46uh4q3psjrimko8sbpibit08997nnn.apps.googleusercontent.com"))
+            .setAudience(Arrays.asList("331251032035-3t6a82lqs6k1n1ecbr010qfks35lt3sv.apps.googleusercontent.com", "331251032035-q46uh4q3psjrimko8sbpibit08997nnn.apps.googleusercontent.com", "331251032035-6dffqhl846rpejle2a5lfduv2dps6gsb.apps.googleusercontent.com"))
             .build();
 
     @PostMapping
@@ -37,7 +37,7 @@ public class GsoValidater {
 
             if (user == null) {
                 UserController.save(
-                        new User(null, payload.getEmail(), (String) payload.get("name"), "", "", null, UUID.randomUUID().toString(), null),
+                        new User(null, payload.getEmail(), (String) payload.get("name"), "", "", "", UUID.randomUUID().toString(), null),
                         null
                 );
 
