@@ -42,8 +42,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             public Authentication authenticate(Authentication authentication) throws AuthenticationException {
                 List<String> principalRequestValue = new ArrayList<>();
 
-                try {
-                    Connection con = DatabaseConnection.getConnection();
+                try (Connection con = DatabaseConnection.getConnection()) {
 
                     Logger log = Logger.getLogger(String.valueOf(SecurityConfig.class));
 
@@ -69,8 +68,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             }
         });
         httpSecurity
-                .antMatcher("/api/fiks/dette/hans")
+                .antMatcher("/api/**")
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and().addFilter(filter).authorizeRequests().anyRequest().authenticated();
+                .and().addFilter(filter).authorizeRequests().anyRequest().authenticated().and().cors().and().csrf().disable();
     }
 }

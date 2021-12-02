@@ -1,6 +1,7 @@
 package com.disky.api.endpoint;
 
 import com.disky.api.Exceptions.GetUserException;
+import com.disky.api.Exceptions.UserImageUploadException;
 import com.disky.api.Exceptions.UserLinkException;
 import com.disky.api.controller.UserController;
 import com.disky.api.controller.UserLinkController;
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.mail.Multipart;
 import java.io.File;
 import java.util.List;
 
@@ -31,6 +33,12 @@ public class UserEndpoint {
     @PostMapping(path="/toggle")
     public UserLink create(@RequestBody(required = true) ToggleUserWrapper toggleUserWrapper) throws UserLinkException {
         return UserLinkController.toggleFriend(toggleUserWrapper.getSenderUser(), toggleUserWrapper.getRecipientUser());
+    }
+
+    @PostMapping(path = "/update", consumes = {"multipart/form-data"})
+    public User updateUser(@RequestPart(name = "user") User user, @RequestPart(name = "image") MultipartFile file) throws GetUserException, UserImageUploadException {
+        UserController.update(user, file);
+        return user;
     }
 
     @PostMapping(path = "/create", consumes = {"multipart/form-data"})

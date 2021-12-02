@@ -84,7 +84,7 @@ public class UserController {
             throw new GetUserException(e.getMessage());
         }
     }
-    private static void update(User user, MultipartFile file) throws GetUserException, UserImageUploadException {
+    public static void update(User user, MultipartFile file) throws GetUserException, UserImageUploadException {
         String fileName = null;
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
         String fields= "";
