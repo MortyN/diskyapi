@@ -15,6 +15,8 @@ import java.util.logging.Logger;
 
 public class ScoreCardController {
     private static Map<Long, ScoreCard> scoreCards = new HashMap<>();
+    private static Timestamp lastCacheClean = new Timestamp(System.currentTimeMillis());
+    private static final long cleanInterval = 14400000; // 4 hours
     public static void create(ScoreCard scoreCard) throws ScoreCardException {
         if (scoreCard.getCreatedBy() == null && scoreCard.getCreatedBy().getUserId() == 0)
             throw new ScoreCardException("User is required!");
@@ -62,7 +64,6 @@ public class ScoreCardController {
         Logger log = Logger.getLogger(String.valueOf(ScoreCardController.class));
         String sql = "UPDATE score_cards SET END_TS = ? WHERE CARD_ID = ?";
 
-
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
         ){
@@ -81,6 +82,12 @@ public class ScoreCardController {
     }
 
     public static ScoreCard getOneScoreCard(Long cardId) throws GetUserException, ScoreCardException {
+        long diff = System.currentTimeMillis() - lastCacheClean.getTime();
+
+        if(diff >= cleanInterval){
+            lastCacheClean = new Timestamp(System.currentTimeMillis());
+            scoreCards.clear();
+        }
         ScoreCard cachedScoreCard = scoreCards.get(cardId);
         if(cachedScoreCard != null) return cachedScoreCard;
 

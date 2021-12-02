@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.sql.*;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +22,9 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 public class UserController {
-    private static Map<Long, User> users = new HashMap<>();
+    public static Map<Long, User> users = new HashMap<>();
+    private static Timestamp lastCacheClean = new Timestamp(System.currentTimeMillis());
+    private static final long cleanInterval = 14400000; // 4 hours
 
     public static void delete(User user) throws  GetUserException {
         String sql = "DELETE FROM users WHERE USER_ID = ?";
@@ -81,7 +84,7 @@ public class UserController {
             throw new GetUserException(e.getMessage());
         }
     }
-    private static void update(User user, MultipartFile file) throws GetUserException, UserImageUploadException {
+    public static void update(User user, MultipartFile file) throws GetUserException, UserImageUploadException {
         String fileName = null;
         Logger log = Logger.getLogger(String.valueOf(UserController.class));
         String fields= "";
@@ -125,16 +128,32 @@ public class UserController {
     }
 
     private static void updateCache(User user) {
+        long diff = System.currentTimeMillis() - lastCacheClean.getTime();
+
+        if(diff >= cleanInterval){
+            lastCacheClean = new Timestamp(System.currentTimeMillis());
+            users.clear();
+        }
+
         User cachedUser = users.get(user.getUserId());
-        cachedUser.setUserLinks(user.getUserLinks());
-        cachedUser.setImgKey(user.getImgKey());
-        cachedUser.setUserName(user.getUserName());
-        cachedUser.setFirstName(user.getFirstName());
-        cachedUser.setLastName(user.getLastName());
-        cachedUser.setPhoneNumber(user.getPhoneNumber());
+        if(cachedUser != null){
+            cachedUser.setUserLinks(user.getUserLinks());
+            cachedUser.setImgKey(user.getImgKey());
+            cachedUser.setUserName(user.getUserName());
+            cachedUser.setFirstName(user.getFirstName());
+            cachedUser.setLastName(user.getLastName());
+            cachedUser.setPhoneNumber(user.getPhoneNumber());
+        }
     }
 
     protected static User getOne(User user) throws GetUserException {
+        long diff = System.currentTimeMillis() - lastCacheClean.getTime();
+
+        if(diff >= cleanInterval){
+            lastCacheClean = new Timestamp(System.currentTimeMillis());
+            users.clear();
+        }
+
         User cachedUser = users.get(user.getUserId());
         if(cachedUser != null) return cachedUser;
 
@@ -143,8 +162,10 @@ public class UserController {
         User rawUser = getOne(filter);
         if(rawUser != null){
             rawUser.setPassword("***********");
+            rawUser.setApiKey("");
         }
         users.put(rawUser.getUserId(), rawUser);
+
         return rawUser;
     }
 

@@ -60,7 +60,7 @@ public class S3Util {
         Logger log = Logger.getLogger(String.valueOf(S3Util.class));
         try {
             File file = multipartToFile(tempFile, fileName+".jpeg");
-
+            log.info(System.getenv("AWS_ACCESS_KEY_ID"));
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, file.getName(),file).withCannedAcl(CannedAccessControlList.PublicRead);
             s3Client.putObject(putObjectRequest);
             log.info("successfully uploaded image");
