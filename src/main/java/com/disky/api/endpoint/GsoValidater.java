@@ -13,7 +13,7 @@ import java.io.*;
 import java.security.GeneralSecurityException;
 import java.util.*;
 
-@RequestMapping("/auth/validategso")
+@RequestMapping("/auth")
 @RestController
 @CrossOrigin
 public class GsoValidater {
@@ -21,7 +21,7 @@ public class GsoValidater {
             .setAudience(Arrays.asList("331251032035-3t6a82lqs6k1n1ecbr010qfks35lt3sv.apps.googleusercontent.com", "331251032035-q46uh4q3psjrimko8sbpibit08997nnn.apps.googleusercontent.com", "331251032035-6dffqhl846rpejle2a5lfduv2dps6gsb.apps.googleusercontent.com"))
             .build();
 
-    @PostMapping
+    @PostMapping("/validategso")
     public User validategso(@RequestParam String id_token) throws GeneralSecurityException, IOException, GetUserException {
         User user = null;
 
@@ -46,6 +46,15 @@ public class GsoValidater {
 
         }
         return user;
+    }
+
+    @GetMapping("getTestUser")
+    public User getTestUser(@RequestParam Long userId) throws GetUserException {
+        UserFilter filter = new UserFilter();
+        List<Long> userIds = new ArrayList<>();
+        userIds.add(userId);
+        filter.setUserIds(userIds);
+        return UserController.getOne(filter);
     }
 
 }
