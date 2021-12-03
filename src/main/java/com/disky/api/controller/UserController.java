@@ -117,7 +117,8 @@ public class UserController {
 
            log.info("Rows affected: " + stmt.executeUpdate());
 
-           user.setImgKey(fileName);
+           if (file != null)
+               user.setImgKey(fileName);
 
            updateCache(user);
        } catch (SQLException  e) {
