@@ -55,13 +55,13 @@ public class ArenaRoundController {
                  if(rs.next()){
                      round.setArenaRoundId(rs.getLong(1));
                  }
-                 if(!Utility.nullOrEmpty(round.getHoles())){
-                     round.setHoles(ArenaHoleController.create(round.getHoles(),round));
-                 }
-             } catch (SQLException | ArenaRoundException | GetUserException | ArenaException e) {
+
+             } catch (SQLException  | GetUserException | ArenaException e) {
                  throw new ArenaRoundException(e.getMessage());
              }
-
+             if(!Utility.nullOrEmpty(round.getHoles())){
+                 round.setHoles(ArenaHoleController.create(round.getHoles(),round));
+             }
          }
      }
     
@@ -109,11 +109,12 @@ public class ArenaRoundController {
             log.info(stmt.toString());
             log.info("Rows affected: " + stmt.executeUpdate());
 
-            if(!Utility.nullOrEmpty(round.getHoles())){
-                round.setHoles(ArenaHoleController.create(round.getHoles(),round));
-            }
+
         } catch (SQLException e) {
             throw new ArenaRoundException(e.getMessage());
+        }
+        if(!Utility.nullOrEmpty(round.getHoles())){
+            round.setHoles(ArenaHoleController.create(round.getHoles(),round));
         }
     }
 

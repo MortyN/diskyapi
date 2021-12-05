@@ -73,16 +73,23 @@ public class ArenaController {
             if (rs.next()) {
                 arena.setArenaId(rs.getLong(1));
             }
-
-            if(!Utility.nullOrEmpty(arena.getRounds())){
-                for(ArenaRound round : arena.getRounds()){
-                    ArenaRoundController.create(round);
-                }
-            }
-
-        } catch (SQLException | ArenaRoundException e) {
+        } catch (SQLException e) {
             throw new ArenaException(e.getMessage());
         }
+
+        if(!Utility.nullOrEmpty(arena.getRounds())){
+            for(ArenaRound round : arena.getRounds()){
+                round.setArena(new Arena(arena.getArenaId()));
+                round.setCreatedBy(arena.getCreatedBy());
+                try {
+                    ArenaRoundController.create(round);
+                } catch (ArenaRoundException e) {
+                    throw new ArenaException("Unable to create ARenaRoundHole for arena");
+                }
+            }
+        }
+
+
         return arena;
     }
 

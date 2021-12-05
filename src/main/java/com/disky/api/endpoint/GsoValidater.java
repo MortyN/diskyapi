@@ -36,8 +36,12 @@ public class GsoValidater {
             user = UserController.getOne(filter);
 
             if (user == null) {
+
+                String firstName = (String) payload.getOrDefault("given_name", "");
+                String lastName = (String) payload.getOrDefault("family_name", "");
+
                 UserController.save(
-                        new User(null, payload.getEmail(), (String) payload.get("name"), "", "", "", UUID.randomUUID().toString(), null),
+                        new User(null, payload.getEmail(), firstName, lastName, "", "", UUID.randomUUID().toString(), null),
                         null
                 );
 
