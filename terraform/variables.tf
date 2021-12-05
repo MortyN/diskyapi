@@ -17,12 +17,12 @@ variable "disky_mysql_adminpass" {
     description = "mysql admin password"
 }
 
-variable "morten_ip_address" {
-    type = string
-    description = "morten ip address"
-}
-
 variable "whitelisted_ips" {
   type = map(string)
   description = "whitelisted ips"
+}
+
+variable "mysql_ssl_ca" {
+  type = string
+  description = "ssl ca from mysql db"
 }

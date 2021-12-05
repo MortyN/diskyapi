@@ -50,6 +50,7 @@ resource "azurerm_app_service" "example" {
     "DISKYAPIADMINPASS"     = var.disky_mysql_adminpass
     "DISKYAPIDBNAME"        = azurerm_mysql_flexible_database.example.name
     "DISKYAPIDBSERVERNAME"  = azurerm_mysql_flexible_server.mysqlserver.name
+    "MYSQL_SSL_CA"          = var.mysql_ssl_ca
   }
 }
 

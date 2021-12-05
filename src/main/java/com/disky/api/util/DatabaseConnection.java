@@ -14,7 +14,7 @@ public class DatabaseConnection {
     private static final int DALMANTINERE = 101;
 
     static {
-        config.setJdbcUrl("jdbc:mysql://"+System.getenv("DISKYAPIDBSERVERNAME")+".mysql.database.azure.com:3306/"+System.getenv("DISKYAPIDBNAME")+"?useSSL=true");
+        config.setJdbcUrl("jdbc:mysql://"+System.getenv("DISKYAPIDBSERVERNAME")+".mysql.database.azure.com:3306/"+System.getenv("DISKYAPIDBNAME")+"?useSSL=true?sslmode=verify-full&sslrootcert="+System.getenv("MYSQL_SSL_CA"));
         config.setUsername( System.getenv("DISKYAPIADMINUSER") );
         config.setPassword( System.getenv("DISKYAPIADMINPASS") );
         config.setDriverClassName("com.mysql.cj.jdbc.Driver");
