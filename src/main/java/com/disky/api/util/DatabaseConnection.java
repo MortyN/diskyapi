@@ -12,10 +12,11 @@ public class DatabaseConnection {
     private static HikariConfig config = new HikariConfig();
     private static HikariDataSource ds;
     private static final int DALMANTINERE = 101;
+
     static {
-        config.setJdbcUrl( "jdbc:mysql://"+System.getenv("DISKY_DB_IP")+":3306/MOB3100_DEV" );
-        config.setUsername( "MOB3100_DEV" );
-        config.setPassword( "Platinum" );
+        config.setJdbcUrl("jdbc:mysql://"+System.getenv("DISKYAPIDBSERVERNAME")+".mysql.database.azure.com:3306/"+System.getenv("DISKYAPIDBNAME")+"?useSSL=true");
+        config.setUsername( System.getenv("DISKYAPIADMINUSER") );
+        config.setPassword( System.getenv("DISKYAPIADMINPASS") );
         config.setDriverClassName("com.mysql.cj.jdbc.Driver");
         config.setMaximumPoolSize(DALMANTINERE);
         config.setConnectionTimeout(5000);
@@ -26,6 +27,7 @@ public class DatabaseConnection {
         config.addDataSourceProperty( "leakDetectionThreshold" , "10000" );
         config.addDataSourceProperty( "cachePrepStmts" , "true" );
         config.addDataSourceProperty( "prepStmtCacheSize" , "250" );
+        config.addDataSourceProperty( "prepStmtCacheSqlLimit" , "2048" );
         config.addDataSourceProperty( "prepStmtCacheSqlLimit" , "2048" );
         ds = new HikariDataSource( config );
     }
