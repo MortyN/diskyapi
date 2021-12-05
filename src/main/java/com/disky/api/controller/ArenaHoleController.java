@@ -127,21 +127,21 @@ public class ArenaHoleController {
 
             stmt.setLong(1, hole.getArenaRoundHoleId());
 
-            ResultSet res = stmt.executeQuery();
-
-            ArenaRoundHole arenaRoundHole = new ArenaRoundHole(
-                    res.getLong("arena_round_hole.ARENA_ROUND_HOLE_ID"),
-                    ArenaRoundController.get(new ArenaRound(res.getLong("arena_round_hole.ARENA_ROUND_ID"))),
-                    res.getString("arena_round_hole.HOLE_NAME"),
-                    res.getInt("arena_round_hole.PAR_VALUE"),
-                    res.getBoolean("arena_round_hole.ACTIVE"),
-                    res.getString("arena_round_hole.START_LATITUDE"),
-                    res.getString("arena_round_hole.START_LONGITUDE"),
-                    res.getString("arena_round_hole.END_LATITUDE"),
-                    res.getString("arena_round_hole.END_LONGITUDE"),
-                    res.getInt("arena_round_hole.SORT ARENA_ROUNDS_HOLE_ORDER")
-            );
-            return arenaRoundHole;
+            try(ResultSet res = stmt.executeQuery();){
+                ArenaRoundHole arenaRoundHole = new ArenaRoundHole(
+                        res.getLong("arena_round_hole.ARENA_ROUND_HOLE_ID"),
+                        ArenaRoundController.get(new ArenaRound(res.getLong("arena_round_hole.ARENA_ROUND_ID"))),
+                        res.getString("arena_round_hole.HOLE_NAME"),
+                        res.getInt("arena_round_hole.PAR_VALUE"),
+                        res.getBoolean("arena_round_hole.ACTIVE"),
+                        res.getString("arena_round_hole.START_LATITUDE"),
+                        res.getString("arena_round_hole.START_LONGITUDE"),
+                        res.getString("arena_round_hole.END_LATITUDE"),
+                        res.getString("arena_round_hole.END_LONGITUDE"),
+                        res.getInt("arena_round_hole.SORT ARENA_ROUNDS_HOLE_ORDER")
+                );
+                return arenaRoundHole;
+            }
         } catch (SQLException e){
             throw new ArenaRoundException(e.getMessage());
         }

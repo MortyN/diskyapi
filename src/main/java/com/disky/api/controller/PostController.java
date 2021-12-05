@@ -66,33 +66,36 @@ public class PostController {
             }
 
             log.info("POST SQL : " + stmt.toString());
-            ResultSet res = stmt.executeQuery();
 
-            while (res.next()) {
-                User user = UserController.getOne(new User(res.getLong("USER_ID")));
-                Post post = new Post(
-                        res.getLong("POST_ID"),
-                        user,
-                        res.getString("TEXT_MESSAGE"),
-                        res.getInt("POST_TYPE"),
-                        res.getLong("SCORE_CARD_LINK") == 0 ? null : new ScoreCard(res.getLong("SCORE_CARD_LINK")),
-                        res.getTimestamp("POSTED_TS"),
-                        res.getTimestamp("UPDATED_TS")
-                );
+            try(ResultSet res = stmt.executeQuery()){
+                while (res.next()) {
+                    User user = UserController.getOne(new User(res.getLong("USER_ID")));
+                    Post post = new Post(
+                            res.getLong("POST_ID"),
+                            user,
+                            res.getString("TEXT_MESSAGE"),
+                            res.getInt("POST_TYPE"),
+                            res.getLong("SCORE_CARD_LINK") == 0 ? null : new ScoreCard(res.getLong("SCORE_CARD_LINK")),
+                            res.getTimestamp("POSTED_TS"),
+                            res.getTimestamp("UPDATED_TS")
+                    );
 
-                postResults.add(post);
-                if(filter.getUser() != null){
-                    post.setInteractions(getInteractions(post, filter.getUser()));
-                    UserLinkFilter userLinkFilter = new UserLinkFilter();
-                    userLinkFilter.setUser(filter.getUser());
-                    post.getUser().setUserLinks(UserLinkController.getUserLinks(userLinkFilter));
-                }else{
-                    post.setInteractions(new Interactions(null));
-                }
-                if(post.getType() == 2 && post.getScoreCard() != null && post.getScoreCard().getCardId() != 0L){
-                    post.setScoreCard(ScoreCardController.getOneScoreCard(post.getScoreCard().getCardId()));
+                    postResults.add(post);
+                    if(filter.getUser() != null){
+                        post.setInteractions(getInteractions(post, filter.getUser()));
+                        UserLinkFilter userLinkFilter = new UserLinkFilter();
+                        userLinkFilter.setUser(filter.getUser());
+                        post.getUser().setUserLinks(UserLinkController.getUserLinks(userLinkFilter));
+                    }else{
+                        post.setInteractions(new Interactions(null));
+                    }
+                    if(post.getType() == 2 && post.getScoreCard() != null && post.getScoreCard().getCardId() != 0L){
+                        post.setScoreCard(ScoreCardController.getOneScoreCard(post.getScoreCard().getCardId()));
+                    }
                 }
             }
+
+
             log.info("Successfully retrieved: " + postResults.size() + " posts.");
             return postResults;
         } catch (SQLException | GetUserException | UserLinkException | ScoreCardException e) {
@@ -108,14 +111,19 @@ public class PostController {
         ){
 
             stmt.setLong(1, post.getPostId());
-            ResultSet res = stmt.executeQuery();
 
-            while(res.next()){
-                interaction.add(new Interaction(
-                        new Post(res.getLong("POST_ID")),
-                        new User(res.getLong("USER_ID")),
-                        1));
+
+
+            try(ResultSet res = stmt.executeQuery();){
+                while(res.next()){
+                    interaction.add(new Interaction(
+                            new Post(res.getLong("POST_ID")),
+                            new User(res.getLong("USER_ID")),
+                            1));
+                }
             }
+
+
 
             Boolean isLikedByUser = false;
             for(Interaction i : interaction){
@@ -142,6 +150,7 @@ public class PostController {
         ){
             stmt.setLong(1, post.getPostId());
             stmt2.setLong(1, post.getPostId());
+
             stmt.executeUpdate();
             stmt2.executeUpdate();
 
@@ -185,10 +194,12 @@ public class PostController {
             log.info(stmt.toString());
             log.info("Rows affected: " + stmt.executeUpdate());
 
-            ResultSet keys = stmt.getGeneratedKeys();
-            if(keys.next()){
-                post.setPostId(keys.getLong(1));
+            try(ResultSet keys = stmt.getGeneratedKeys();){
+                if(keys.next()){
+                    post.setPostId(keys.getLong(1));
+                }
             }
+
         } catch (SQLException e) {
             throw new PostControllerException(e.getMessage());
         }
@@ -241,20 +252,21 @@ public class PostController {
             stmt1.setLong(1, user.getUserId());
             stmt1.setLong(2, UserLink.USER_LINK_TYPE_ACCEPTED);
             log.info(stmt1.toString());
-            ResultSet res1 = stmt1.executeQuery();
-
-            while (res1.next()) {
-                userIds.add(res1.getLong("userId"));
+            try(ResultSet res1 = stmt1.executeQuery();){
+                while (res1.next()) {
+                    userIds.add(res1.getLong("userId"));
+                }
             }
 
             stmt2.setLong(1, user.getUserId());
             stmt2.setLong(2, UserLink.USER_LINK_TYPE_ACCEPTED);
             log.info("SHARK: " + stmt2.toString());
-            ResultSet res2 = stmt2.executeQuery();
-
-            while (res2.next()) {
-                userIds.add(res2.getLong("userId"));
+            try(ResultSet res2 = stmt2.executeQuery();) {
+                while (res2.next()) {
+                    userIds.add(res2.getLong("userId"));
+                }
             }
+
             userIds.add(user.getUserId());
 
         } catch (SQLException e) {
@@ -313,9 +325,10 @@ public class PostController {
         ){
             stmt.setLong(1, interaction.getPost().getPostId());
             stmt.setLong(2, interaction.getUser().getUserId());
-            ResultSet res1 = stmt.executeQuery();
 
-            return res1.next();
+            try(ResultSet res1 = stmt.executeQuery()){
+                return res1.next();
+            }
 
         } catch (SQLException e) {
             throw new PostControllerException(e.getMessage());

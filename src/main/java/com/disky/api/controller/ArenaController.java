@@ -69,10 +69,12 @@ public class ArenaController {
 
             log.info("Rows affected: " + stmt.executeUpdate());
 
-            ResultSet rs = stmt.getGeneratedKeys();
-            if (rs.next()) {
-                arena.setArenaId(rs.getLong(1));
+            try(ResultSet rs = stmt.getGeneratedKeys();){
+                if (rs.next()) {
+                    arena.setArenaId(rs.getLong(1));
+                }
             }
+
         } catch (SQLException e) {
             throw new ArenaException(e.getMessage());
         }
@@ -189,66 +191,66 @@ public class ArenaController {
                 }
 
                 log.info(stmt.toString());
-
-                ResultSet res = stmt.executeQuery();
-
                 Arena arena = null;
                 User user = null;
                 ArenaRound arenaRound = null;
+                try(ResultSet res = stmt.executeQuery();){
+                    while (res.next()) {
+                        Long arenaId =  res.getLong("ARENA_ARENA_ID");
 
-                while (res.next()) {
-                Long arenaId =  res.getLong("ARENA_ARENA_ID");
+                        if(!arenaResult.stream().anyMatch(o -> o.getArenaId().equals(arenaId))){
+                            user =  UserController.getOne(new User(res.getLong("ARENA_CREATED_BY_USER_ID")));
+                            arena = new Arena(
+                                    res.getLong("ARENA_ARENA_ID"),
+                                    res.getString("ARENA_NAME"),
+                                    res.getString("ARENA_DESCRIPTION"),
+                                    res.getTimestamp("ARENA_ESTABLISHED"),
+                                    user,
+                                    res.getTimestamp("ARENA_CREATED_TS"),
+                                    res.getTimestamp("ARENA_MODIFIED_TS"),
+                                    res.getString("ARENA_LATITUDE"),
+                                    res.getString("ARENA_LONGITUDE"),
+                                    res.getBoolean("ARENA_ACTIVE"));
 
-                if(!arenaResult.stream().anyMatch(o -> o.getArenaId().equals(arenaId))){
-                   user =  UserController.getOne(new User(res.getLong("ARENA_CREATED_BY_USER_ID")));
-                        arena = new Arena(
-                                res.getLong("ARENA_ARENA_ID"),
-                                res.getString("ARENA_NAME"),
-                                res.getString("ARENA_DESCRIPTION"),
-                                res.getTimestamp("ARENA_ESTABLISHED"),
-                                user,
-                                res.getTimestamp("ARENA_CREATED_TS"),
-                                res.getTimestamp("ARENA_MODIFIED_TS"),
-                                res.getString("ARENA_LATITUDE"),
-                                res.getString("ARENA_LONGITUDE"),
-                                res.getBoolean("ARENA_ACTIVE"));
-
-                        arenaResult.add(arena);
-                    }
-                    if(filter.isGetArenaRounds() && res.getLong("ARENA_ROUNDS_ARENA_ROUND_ID") != 0){
-                        Long arenaRoundId = res.getLong("ARENA_ROUNDS_ARENA_ROUND_ID");
-
-                        if(Utility.nullOrEmpty(arena.getRounds()) || (!arena.getRounds().stream().anyMatch(o -> o.getArenaRoundId().equals(arenaRoundId)))) {
-                            arenaRound = new ArenaRound(
-                                            arenaRoundId,
-                                            new Arena(arena.getArenaId()),
-                                            res.getInt("ARENA_ROUNDS_HOLE_AMOUNT"),
-                                            res.getBoolean("ARENA_ROUNDS_PAYMENT"),
-                                            res.getString("ARENA_ROUNDS_DESCRIPTION"),
-                                            user,
-                                            res.getTimestamp("ARENA_ROUNDS_CREATED_TS"),
-                                            res.getTimestamp("ARENA_ROUNDS_MODIFIED_TS"),
-                                            res.getBoolean("ARENA_ACTIVE")
-                                    );
-                            arena.addRounds(arenaRound);
+                            arenaResult.add(arena);
                         }
-                        Long arenaRoundHoleId = res.getLong("ARENA_ROUNDS_HOLE_ARENA_ROUND_HOLE_ID");
-                        if(Utility.nullOrEmpty(arenaRound.getHoles()) || (!arenaRound.getHoles().stream().anyMatch(o -> o.getArenaRoundHoleId().equals(arenaRoundHoleId)))){
-                            arenaRound.addHoles(new ArenaRoundHole(
-                                                    arenaRoundHoleId,
-                                                    new ArenaRound(arenaRoundId),
-                                                    res.getString("ARENA_ROUNDS_HOLE_HOLE_NAME"),
-                                                    res.getInt("ARENA_ROUNDS_HOLE_PAR_VALUE"),
-                                                    res.getBoolean("ARENA_ROUNDS_HOLE_ACTIVE"),
-                                                    res.getString("ARENA_ROUNDS_HOLE_START_LATITUDE"),
-                                                    res.getString("ARENA_ROUNDS_HOLE_START_LONGITUDE"),
-                                                    res.getString("ARENA_ROUNDS_HOLE_END_LATITUDE"),
-                                                    res.getString("ARENA_ROUNDS_HOLE_END_LONGITUDE"),
-                                                    res.getInt("ARENA_ROUNDS_HOLE_ORDER")
-                                                ));
+                        if(filter.isGetArenaRounds() && res.getLong("ARENA_ROUNDS_ARENA_ROUND_ID") != 0){
+                            Long arenaRoundId = res.getLong("ARENA_ROUNDS_ARENA_ROUND_ID");
+
+                            if(Utility.nullOrEmpty(arena.getRounds()) || (!arena.getRounds().stream().anyMatch(o -> o.getArenaRoundId().equals(arenaRoundId)))) {
+                                arenaRound = new ArenaRound(
+                                        arenaRoundId,
+                                        new Arena(arena.getArenaId()),
+                                        res.getInt("ARENA_ROUNDS_HOLE_AMOUNT"),
+                                        res.getBoolean("ARENA_ROUNDS_PAYMENT"),
+                                        res.getString("ARENA_ROUNDS_DESCRIPTION"),
+                                        user,
+                                        res.getTimestamp("ARENA_ROUNDS_CREATED_TS"),
+                                        res.getTimestamp("ARENA_ROUNDS_MODIFIED_TS"),
+                                        res.getBoolean("ARENA_ACTIVE")
+                                );
+                                arena.addRounds(arenaRound);
+                            }
+                            Long arenaRoundHoleId = res.getLong("ARENA_ROUNDS_HOLE_ARENA_ROUND_HOLE_ID");
+                            if(Utility.nullOrEmpty(arenaRound.getHoles()) || (!arenaRound.getHoles().stream().anyMatch(o -> o.getArenaRoundHoleId().equals(arenaRoundHoleId)))){
+                                arenaRound.addHoles(new ArenaRoundHole(
+                                        arenaRoundHoleId,
+                                        new ArenaRound(arenaRoundId),
+                                        res.getString("ARENA_ROUNDS_HOLE_HOLE_NAME"),
+                                        res.getInt("ARENA_ROUNDS_HOLE_PAR_VALUE"),
+                                        res.getBoolean("ARENA_ROUNDS_HOLE_ACTIVE"),
+                                        res.getString("ARENA_ROUNDS_HOLE_START_LATITUDE"),
+                                        res.getString("ARENA_ROUNDS_HOLE_START_LONGITUDE"),
+                                        res.getString("ARENA_ROUNDS_HOLE_END_LATITUDE"),
+                                        res.getString("ARENA_ROUNDS_HOLE_END_LONGITUDE"),
+                                        res.getInt("ARENA_ROUNDS_HOLE_ORDER")
+                                ));
+                            }
                         }
                     }
                 }
+
+
                 log.info("Successfully retrieved " + arenaResult.size() + " arenas.");
                 return arenaResult;
             } catch(SQLException | GetUserException e){

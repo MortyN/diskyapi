@@ -50,11 +50,13 @@ public class ArenaRoundController {
                  round.setCreatedBy(UserController.getOne(round.getCreatedBy()));
 
                  log.info("Rows affected: " + stmt.executeUpdate());
-                 ResultSet rs = stmt.getGeneratedKeys();
-
-                 if(rs.next()){
-                     round.setArenaRoundId(rs.getLong(1));
+                 try(ResultSet rs = stmt.getGeneratedKeys();){
+                     if(rs.next()){
+                         round.setArenaRoundId(rs.getLong(1));
+                     }
                  }
+
+
 
              } catch (SQLException  | GetUserException | ArenaException e) {
                  throw new ArenaRoundException(e.getMessage());
@@ -195,47 +197,48 @@ public class ArenaRoundController {
             }
 
             log.info(stmt.toString());
-
-            ResultSet res = stmt.executeQuery();
-
             ArenaRound arenaRound = null;
-            while (res.next()) {
-                Long arenaRoundId = res.getLong("ARENA_ROUNDS_ARENA_ROUND_ID");
+            try(ResultSet res = stmt.executeQuery();){
 
-                if(!arenaRoundResult.stream().anyMatch(o -> o.getArenaRoundId().equals(arenaRoundId))){
-                    if(arenaRound != null && filter.getGetArenaHoles()){
-                        arenaRound.setHoleAmount(arenaRound.getHoles().size());
+                while (res.next()) {
+                    Long arenaRoundId = res.getLong("ARENA_ROUNDS_ARENA_ROUND_ID");
+
+                    if(!arenaRoundResult.stream().anyMatch(o -> o.getArenaRoundId().equals(arenaRoundId))){
+                        if(arenaRound != null && filter.getGetArenaHoles()){
+                            arenaRound.setHoleAmount(arenaRound.getHoles().size());
+                        }
+                        User user = UserController.getOne(new User(res.getLong("ARENA_ROUNDS_CREATED_BY_USER_ID")));
+                        arenaRound = new ArenaRound(
+                                arenaRoundId,
+                                ArenaController.get(new Arena(res.getLong("ARENA_ROUNDS_ARENA_ID"))),
+                                0,
+                                res.getBoolean("ARENA_ROUNDS_PAYMENT"),
+                                res.getString("ARENA_ROUNDS_DESCRIPTION"),
+                                user,
+                                res.getTimestamp("ARENA_ROUNDS_CREATED_TS"),
+                                res.getTimestamp("ARENA_ROUNDS_MODIFIED_TS"),
+                                res.getBoolean("ARENA_ROUNDS_ACTIVE"));
+
+                        arenaRoundResult.add(arenaRound);
                     }
-                    User user = UserController.getOne(new User(res.getLong("ARENA_ROUNDS_CREATED_BY_USER_ID")));
-                    arenaRound = new ArenaRound(
-                            arenaRoundId,
-                            ArenaController.get(new Arena(res.getLong("ARENA_ROUNDS_ARENA_ID"))),
-                            0,
-                            res.getBoolean("ARENA_ROUNDS_PAYMENT"),
-                            res.getString("ARENA_ROUNDS_DESCRIPTION"),
-                            user,
-                            res.getTimestamp("ARENA_ROUNDS_CREATED_TS"),
-                            res.getTimestamp("ARENA_ROUNDS_MODIFIED_TS"),
-                            res.getBoolean("ARENA_ROUNDS_ACTIVE"));
-
-                    arenaRoundResult.add(arenaRound);
-                }
-                if(filter.getGetArenaHoles()){
-                    arenaRound.addHoles(new ArenaRoundHole(
-                                    res.getLong("ARENA_ROUNDS_HOLE_ARENA_ROUND_HOLE_ID"),
-                                    new ArenaRound(arenaRound.getArenaRoundId()),
-                                    res.getString("ARENA_ROUNDS_HOLE_HOLE_NAME"),
-                                    res.getInt("ARENA_ROUNDS_HOLE_PAR_VALUE"),
-                                    res.getBoolean("ARENA_ROUNDS_HOLE_ACTIVE"),
-                                    res.getString("ARENA_ROUNDS_HOLE_START_LATITUDE"),
-                                    res.getString("ARENA_ROUNDS_HOLE_START_LONGITUDE"),
-                                    res.getString("ARENA_ROUNDS_HOLE_END_LATITUDE"),
-                                    res.getString("ARENA_ROUNDS_HOLE_END_LONGITUDE"),
-                                    res.getInt("ARENA_ROUNDS_HOLE_ORDER")
-                            )
-                    );
+                    if(filter.getGetArenaHoles()){
+                        arenaRound.addHoles(new ArenaRoundHole(
+                                        res.getLong("ARENA_ROUNDS_HOLE_ARENA_ROUND_HOLE_ID"),
+                                        new ArenaRound(arenaRound.getArenaRoundId()),
+                                        res.getString("ARENA_ROUNDS_HOLE_HOLE_NAME"),
+                                        res.getInt("ARENA_ROUNDS_HOLE_PAR_VALUE"),
+                                        res.getBoolean("ARENA_ROUNDS_HOLE_ACTIVE"),
+                                        res.getString("ARENA_ROUNDS_HOLE_START_LATITUDE"),
+                                        res.getString("ARENA_ROUNDS_HOLE_START_LONGITUDE"),
+                                        res.getString("ARENA_ROUNDS_HOLE_END_LATITUDE"),
+                                        res.getString("ARENA_ROUNDS_HOLE_END_LONGITUDE"),
+                                        res.getInt("ARENA_ROUNDS_HOLE_ORDER")
+                                )
+                        );
+                    }
                 }
             }
+
             if(arenaRound != null && filter.getGetArenaHoles()){
                 arenaRound.setHoleAmount(arenaRound.getHoles().size());
             }
