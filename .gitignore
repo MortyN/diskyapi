@@ -39,3 +39,4 @@ out/
 /terraform/terraform.tfstate
 /terraform/terraform.tfstate.backup
 /terraform/.terraform/
+/terraform/secrets.tfvars
