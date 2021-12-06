@@ -17,38 +17,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 import java.util.logging.Logger;
 
-//@Service
-//class S3Util {
-//
-//    val s3Client = S3Client { region = "eu-north-1" }
-//
-//    suspend fun uploadPhoto(keyname: String?, file: File?): String {
-//        val newObjectMetadata = mutableMapOf<String, String>()
-//        newObjectMetadata["aws-sdk-kotlin"] = "test"
-//        val fileToUpload = Files.readAllBytes(
-//                Paths.get(file?.absolutePath ?: ""))
-//        val byteStreamOfFile = ByteStream.fromBytes(fileToUpload)
-//        val putObjectResponse = s3Client.putObject {
-//            bucket = bucketName
-//            key = keyname
-//            metadata = newObjectMetadata
-//            body = byteStreamOfFile
-//        }
-//        return "Successfully uploaded the file with the etag: ${putObjectResponse.eTag}"
-//    }
-//
-//    companion object {
-//        private const val bucketName = "prod-disky-images"
-//    }
-//}
-
-
 @Service
 public class S3Util {
     static AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
             .withRegion(Regions.EU_NORTH_1)
             .build();
-    static String bucketName = "prod-disky-images";
+    static String bucketName = System.getenv("DISKYS3NAME");
 
     public static File multipartToFile(MultipartFile multipart, String fileName) throws IllegalStateException, IOException {
         File convFile = new File(System.getProperty("java.io.tmpdir")+"/"+fileName);
