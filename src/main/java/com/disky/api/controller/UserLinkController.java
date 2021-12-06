@@ -177,34 +177,36 @@ public class UserLinkController {
 
             log.info("Executing SQL: " + stmt.toString());
 
-            ResultSet res = stmt.executeQuery();
-            while (res.next()) {
-                UserLink link = new UserLink(
-                        new User(
-                                res.getLong("USER_ID_LINK1"),
-                                res.getString("USER_LINKS1_USERNAME"),
-                                res.getString("USER_LINKS1_FIRST_NAME"),
-                                res.getString("USER_LINKS1_LAST_NAME"),
-                                res.getString("USER_LINKS1_PHONE_NUMBER"),
-                                "************",
-                                null,
-                                res.getString("USER_LINKS1_IMG_KEY")
-                        ),
-                        new User(
-                                res.getLong("USER_ID_LINK2"),
-                                res.getString("USER_LINKS2_USERNAME"),
-                                res.getString("USER_LINKS2_FIRST_NAME"),
-                                res.getString("USER_LINKS2_LAST_NAME"),
-                                res.getString("USER_LINKS2_PHONE_NUMBER"),
-                                "************",
-                                null,
-                                res.getString("USER_LINKS2_IMG_KEY")
-                        ),
-                        res.getInt("TYPE"),
-                        res.getTimestamp("CREATED_TS")
-                );
-                userLinkResult.add(link);
+            try(ResultSet res = stmt.executeQuery();) {
+                while (res.next()) {
+                    UserLink link = new UserLink(
+                            new User(
+                                    res.getLong("USER_ID_LINK1"),
+                                    res.getString("USER_LINKS1_USERNAME"),
+                                    res.getString("USER_LINKS1_FIRST_NAME"),
+                                    res.getString("USER_LINKS1_LAST_NAME"),
+                                    res.getString("USER_LINKS1_PHONE_NUMBER"),
+                                    "************",
+                                    null,
+                                    res.getString("USER_LINKS1_IMG_KEY")
+                            ),
+                            new User(
+                                    res.getLong("USER_ID_LINK2"),
+                                    res.getString("USER_LINKS2_USERNAME"),
+                                    res.getString("USER_LINKS2_FIRST_NAME"),
+                                    res.getString("USER_LINKS2_LAST_NAME"),
+                                    res.getString("USER_LINKS2_PHONE_NUMBER"),
+                                    "************",
+                                    null,
+                                    res.getString("USER_LINKS2_IMG_KEY")
+                            ),
+                            res.getInt("TYPE"),
+                            res.getTimestamp("CREATED_TS")
+                    );
+                    userLinkResult.add(link);
+                }
             }
+
 
             log.info("Successfully retireved: " + userLinkResult.size() + " users.");
             return userLinkResult;

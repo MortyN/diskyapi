@@ -243,27 +243,29 @@ public class UserController {
            }
            log.info(stmt.toString());
 
-           ResultSet res = stmt.executeQuery();
-           while (res.next()) {
-               User user = new User(
-                       res.getLong("USER_ID"),
-                       res.getString("USERNAME"),
-                       res.getString("FIRST_NAME"),
-                       res.getString("LAST_NAME"),
-                       res.getString("PHONE_NUMBER"),
-                       res.getString("PASSWORD"),
-                       res.getString("API_KEY"),
-                       res.getString("IMG_KEY")
-               );
+           try(ResultSet res = stmt.executeQuery();){
+               while (res.next()) {
+                   User user = new User(
+                           res.getLong("USER_ID"),
+                           res.getString("USERNAME"),
+                           res.getString("FIRST_NAME"),
+                           res.getString("LAST_NAME"),
+                           res.getString("PHONE_NUMBER"),
+                           res.getString("PASSWORD"),
+                           res.getString("API_KEY"),
+                           res.getString("IMG_KEY")
+                   );
 
-               userResult.add(user);
+                   userResult.add(user);
 
-               if (filter.isGetUserLinks()) {
-                   UserLinkFilter userLinkFilter = new UserLinkFilter();
-                   userLinkFilter.setUser(user);
-                   user.setUserLinks(UserLinkController.getUserLinks(userLinkFilter));
+                   if (filter.isGetUserLinks()) {
+                       UserLinkFilter userLinkFilter = new UserLinkFilter();
+                       userLinkFilter.setUser(user);
+                       user.setUserLinks(UserLinkController.getUserLinks(userLinkFilter));
+                   }
                }
            }
+
            return userResult;
        } catch (SQLException | UserLinkException e) {
            throw new GetUserException("Unable to get user");
@@ -301,21 +303,21 @@ public class UserController {
            }
 
            log.info(stmt.toString());
-
-           ResultSet res = stmt.executeQuery();
-           while (res.next()) {
-               User user = new User(
-                       res.getLong("USER_ID"),
-                       res.getString("USERNAME"),
-                       res.getString("FIRST_NAME"),
-                       res.getString("LAST_NAME"),
-                       res.getString("PHONE_NUMBER"),
-                       res.getString("PASSWORD"),
-                       res.getString("API_KEY"),
-                       res.getString("IMG_KEY")
-               );
-               userResult.add(user);
-           }
+            try(ResultSet res = stmt.executeQuery();) {
+                while (res.next()) {
+                    User user = new User(
+                            res.getLong("USER_ID"),
+                            res.getString("USERNAME"),
+                            res.getString("FIRST_NAME"),
+                            res.getString("LAST_NAME"),
+                            res.getString("PHONE_NUMBER"),
+                            res.getString("PASSWORD"),
+                            res.getString("API_KEY"),
+                            res.getString("IMG_KEY")
+                    );
+                    userResult.add(user);
+                }
+            }
            return userResult;
 
        } catch (SQLException e) {
@@ -332,21 +334,23 @@ public class UserController {
             stmt.setString(1,userName);
             stmt.setString(2,password);
 
-            ResultSet res = stmt.executeQuery();
-            if(res.next()){
-                loggedInUser = new User(
-                        res.getLong("USER_ID"),
-                        res.getString("USERNAME"),
-                        res.getString("FIRST_NAME"),
-                        res.getString("LAST_NAME"),
-                        res.getString("PHONE_NUMBER"),
-                        res.getString("PASSWORD"),
-                        res.getString("API_KEY"),
-                        res.getString("IMG_KEY")
-                );
-            }else if(loggedInUser == null){
-                throw new GetUserException("Wrong combination");
+            try(ResultSet res = stmt.executeQuery();) {
+                if(res.next()){
+                    loggedInUser = new User(
+                            res.getLong("USER_ID"),
+                            res.getString("USERNAME"),
+                            res.getString("FIRST_NAME"),
+                            res.getString("LAST_NAME"),
+                            res.getString("PHONE_NUMBER"),
+                            res.getString("PASSWORD"),
+                            res.getString("API_KEY"),
+                            res.getString("IMG_KEY")
+                    );
+                }else if(loggedInUser == null){
+                    throw new GetUserException("Wrong combination");
+                }
             }
+
         } catch(SQLException e){
             throw new GetUserException(e.getMessage());
         }

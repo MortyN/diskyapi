@@ -38,11 +38,13 @@ public class ScoreCardMemberController {
 
             log.info("Rows affected: " + stmt.executeUpdate());
 
-            ResultSet rs = stmt.getGeneratedKeys();
-
-            if(rs.next()){
-                scoreCardMember.setScoreCardMemberId(rs.getLong(1));
+            try(ResultSet rs = stmt.getGeneratedKeys();){
+                if(rs.next()){
+                    scoreCardMember.setScoreCardMemberId(rs.getLong(1));
+                }
             }
+
+
             scoreCardMember.setUser(UserController.getOne(scoreCardMember.getUser()));
 
             if(!Utility.nullOrEmpty(scoreCardMember.getResults())){
@@ -93,16 +95,17 @@ public class ScoreCardMemberController {
             stmt.setLong(psId++, filter.getUser().getUserId());
             stmt.setLong(psId++, filter.getScoreCard().getCardId());
 
-            ResultSet res = stmt.executeQuery();
-
-            while (res.next()){
-                ScoreCardMember scoreCardMember = new ScoreCardMember(
-                        res.getLong("score_card_members.SCORE_CARD_MEMBER_ID"),
-                        UserController.getOne(new User(res.getLong("score_card_members.USER_ID"))),
-                        new ScoreCard(res.getLong("score_card_members.CARD_ID"))
-                );
-                scoreCardMemberResult.add(scoreCardMember);
+            try(ResultSet res = stmt.executeQuery();){
+                while (res.next()){
+                    ScoreCardMember scoreCardMember = new ScoreCardMember(
+                            res.getLong("score_card_members.SCORE_CARD_MEMBER_ID"),
+                            UserController.getOne(new User(res.getLong("score_card_members.USER_ID"))),
+                            new ScoreCard(res.getLong("score_card_members.CARD_ID"))
+                    );
+                    scoreCardMemberResult.add(scoreCardMember);
+                }
             }
+
             log.info("Successfully retrieved: " + scoreCardMemberResult.size());
 
             return scoreCardMemberResult;
