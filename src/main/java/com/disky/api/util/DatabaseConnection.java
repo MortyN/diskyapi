@@ -11,7 +11,7 @@ public class DatabaseConnection {
 
     private static HikariConfig config = new HikariConfig();
     private static HikariDataSource ds;
-    private static final int DALMANTINERE = 101;
+    private static final int DALMANTINERE = 30;
 
     static {
         config.setJdbcUrl("jdbc:mysql://"+System.getenv("DISKYAPIDBSERVERNAME")+".mysql.database.azure.com:3306/"+System.getenv("DISKYAPIDBNAME")+"?useSSL=TRUE&SSLMODE=VERIFY-FULL&sslrootcert="+System.getenv("MYSQL_SSL_CA"));
