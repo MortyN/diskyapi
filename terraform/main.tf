@@ -4,6 +4,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "2.88.1"
     }
+    aws = {
+      source = "hashicorp/aws"
+      version = "3.68.0"
+    }
   }
 }
 
@@ -11,13 +15,22 @@ provider "azurerm" {
   features {}
 }
 
+provider "aws" {
+  region = "eu-north-1"
+}
+
+locals {
+  app_name = "diskyapi"
+  env = "prod"
+}
+
 resource "azurerm_resource_group" "rg" {
-  name     = "diskyapi"
+  name     = local.app_name
   location = "norwayeast"
 }
 
 resource "azurerm_app_service_plan" "example" {
-  name                = "prod-diskyapi-asp"
+  name                = "${local.env}-${local.app_name}-asp"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -32,7 +45,7 @@ resource "azurerm_app_service_plan" "example" {
 }
 
 resource "azurerm_app_service" "example" {
-  name                = "prod-diskyapi-as"
+  name                = "${local.env}-${local.app_name}-as"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   app_service_plan_id = azurerm_app_service_plan.example.id
@@ -55,7 +68,7 @@ resource "azurerm_app_service" "example" {
 }
 
 resource "azurerm_mysql_flexible_server" "mysqlserver" {
-  name                   = "prod-diskyapi-mysql-flexible-server"
+  name                   = "${local.env}-${local.app_name}-mysql-flexible-server"
   resource_group_name    = azurerm_resource_group.rg.name
   location               = azurerm_resource_group.rg.location
   administrator_login    = var.disky_mysql_adminuser
@@ -64,7 +77,7 @@ resource "azurerm_mysql_flexible_server" "mysqlserver" {
 }
 
 resource "azurerm_mysql_flexible_database" "example" {
-  name                = "diskyapidb"
+  name                = "${local.app_name}db"
   resource_group_name = azurerm_resource_group.rg.name
   server_name         = azurerm_mysql_flexible_server.mysqlserver.name
   charset             = "utf8"
@@ -78,4 +91,15 @@ resource "azurerm_mysql_flexible_server_firewall_rule" "example" {
   server_name         = azurerm_mysql_flexible_server.mysqlserver.name
   start_ip_address    = each.value
   end_ip_address      = each.value
+}
+
+resource "aws_s3_bucket" "b" {
+  bucket = "${local.env}-${local.app_name}-s3"
+  acl    = "public-read-write"
+  
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["POST", "PUT", "DELETE"]
+    allowed_origins = ["https://${azurerm_app_service.example.name}.azurewebsites.net"]
+  }
 }
